@@ -1,7 +1,15 @@
-# SQLite database (contains seeded data — regenerated on first run)
-api/db/janbolnews.sqlite
-api/db/*.sqlite
-api/db/*.db
+# Laravel API
+api/vendor/
+api/.env
+api/storage/logs/*.log
+api/storage/framework/cache/data/*
+api/storage/framework/sessions/*
+api/storage/framework/views/*
+api/bootstrap/cache/*.php
+api/database/database.sqlite
+
+# Plain PHP backup (local dev only)
+api-php-backup/
 
 # macOS
 .DS_Store
@@ -17,9 +25,5 @@ api/db/*.db
 *.swp
 *.swo
 
-# Environment
-.env
-.env.local
-
-# Node (if ever added)
+# Node
 node_modules/
