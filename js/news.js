@@ -19,7 +19,7 @@
     async _get(path, params) {
       // Build base: on localhost Laravel runs on port 8000, production uses /api
       const isLocal = ['localhost','127.0.0.1'].includes(window.location.hostname);
-      const base = isLocal ? 'http://localhost:8000/api/public' : (this.base || '/api/public');
+      const base = isLocal ? 'http://localhost:8000/api/news' : (this.base || '/api/news');
       const parts = path.replace(/^\//, '').split('/');
       const resource = parts[0];
       const slug     = parts[1];

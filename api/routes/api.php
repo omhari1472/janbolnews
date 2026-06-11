@@ -17,7 +17,7 @@ use App\Http\Controllers\Public\PublicEpaperController;
 /* ══════════════════════════════════════════
    PUBLIC ROUTES
 ══════════════════════════════════════════ */
-Route::prefix('public')->group(function () {
+Route::prefix('news')->group(function () {
     // Articles
     Route::get('/articles',         [PublicArticleController::class, 'index']);
     Route::get('/articles/{slug}',  [PublicArticleController::class, 'show']);

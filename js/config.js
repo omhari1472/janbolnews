@@ -6,7 +6,7 @@
   'use strict';
 
   /* ── API ── */
-  window.API_BASE = '/api/public';
+  window.API_BASE = '/api/news';
 
   /* ── Site Config ── */
   window.JN_CONFIG = {
