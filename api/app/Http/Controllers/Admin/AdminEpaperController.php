@@ -50,8 +50,14 @@ class AdminEpaperController extends Controller {
 
     private function fmt(Epaper $e): array {
         return array_merge($e->toArray(), [
-            'pdf_url'       => $e->pdf_path       ? asset('storage/'.$e->pdf_path)       : null,
-            'thumbnail_url' => $e->thumbnail_path  ? asset('storage/'.$e->thumbnail_path) : null,
+            'pdf_url'       => $this->imgUrl($e->pdf_path),
+            'thumbnail_url' => $this->imgUrl($e->thumbnail_path),
         ]);
+    }
+
+    private function imgUrl(?string $path): ?string {
+        if (!$path) return null;
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) return $path;
+        return asset('storage/'.$path);
     }
 }

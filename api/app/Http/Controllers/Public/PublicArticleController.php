@@ -52,7 +52,7 @@ class PublicArticleController extends Controller {
             'slug'             => $a->slug,
             'excerpt_hi'       => $a->excerpt_hi,
             'excerpt_en'       => $a->excerpt_en,
-            'featured_image'   => $a->featured_image ? asset('storage/'.$a->featured_image) : null,
+            'featured_image'   => $this->imgUrl($a->featured_image),
             'category_slug'    => $a->category?->slug,
             'category_name'    => $a->category?->name_hi,
             'category_name_hi' => $a->category?->name_hi,
@@ -72,5 +72,11 @@ class PublicArticleController extends Controller {
             'content_en' => $a->content_en,
             'tags'       => $a->tags->pluck('name'),
         ]);
+    }
+
+    private function imgUrl(?string $path): ?string {
+        if (!$path) return null;
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) return $path;
+        return asset('storage/'.$path);
     }
 }

@@ -100,7 +100,7 @@ class AdminArticleController extends Controller {
             'content_hi'        => $a->content_hi,
             'content_en'        => $a->content_en,
             'featured_image'    => $a->featured_image,
-            'featured_image_url'=> $a->featured_image ? asset('storage/'.$a->featured_image) : null,
+            'featured_image_url'=> $this->imgUrl($a->featured_image),
             'category_id'       => $a->category_id,
             'category_slug'     => $a->category?->slug,
             'category_name_hi'  => $a->category?->name_hi,
@@ -117,5 +117,11 @@ class AdminArticleController extends Controller {
             'updated_at'        => $a->updated_at?->toIso8601String(),
             'tags'              => $a->relationLoaded('tags') ? $a->tags->pluck('name') : [],
         ];
+    }
+
+    private function imgUrl(?string $path): ?string {
+        if (!$path) return null;
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) return $path;
+        return asset('storage/'.$path);
     }
 }
