@@ -1,11 +1,11 @@
 <?php
 /**
- * JVPDE — One-time Production Setup
+ * Janbol News — One-time Production Setup
  * Run ONCE after uploading to Bluehost, then DELETE immediately.
- * URL: https://jvpde.com/api/setup.php?token=Jvpde@Setup2025!
+ * URL: https://janbolnews.com/api/setup.php?token=JanbolNews@Setup2026!
  */
 
-define('SETUP_TOKEN', 'Jvpde@Setup2025!');
+define('SETUP_TOKEN', 'JanbolNews@Setup2026!');
 
 if (!isset($_GET['token']) || $_GET['token'] !== SETUP_TOKEN) {
     http_response_code(403);
@@ -16,7 +16,7 @@ $laravelRoot = __DIR__ . '/..';
 $artisan = $laravelRoot . '/artisan';
 
 header('Content-Type: text/plain; charset=utf-8');
-echo "=== JVPDE — Production Setup ===\n\n";
+echo "=== Janbol News — Production Setup ===\n\n";
 
 $action = $_GET['action'] ?? 'status';
 
@@ -74,7 +74,7 @@ switch ($action) {
         echo "PHP version  : " . PHP_VERSION . "\n";
         echo "PHP binary   : " . PHP_BINARY . "\n";
         echo "shell_exec   : " . (function_exists('shell_exec') ? 'YES (required)' : 'NO (blocked — contact host)') . "\n";
-        echo "\nActions: ?token=Jvpde@Setup2025!&action=<action>\n";
+        echo "\nActions: ?token=JanbolNews@Setup2026!&action=<action>\n";
         echo "  status         — this page\n";
         echo "  migrate        — run migrations\n";
         echo "  seed           — run seeders\n";
