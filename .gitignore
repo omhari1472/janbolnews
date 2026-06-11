@@ -1,0 +1,25 @@
+# SQLite database (contains seeded data — regenerated on first run)
+api/db/janbolnews.sqlite
+api/db/*.sqlite
+api/db/*.db
+
+# macOS
+.DS_Store
+.localized
+
+# Logs
+*.log
+/tmp/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# Node (if ever added)
+node_modules/

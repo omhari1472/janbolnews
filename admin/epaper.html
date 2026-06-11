@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E-Paper — Janbolnews Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.two-col{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;align-items:start}
+.upload-card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.03);margin-bottom:18px}
+.upload-head{padding:13px 18px;border-bottom:1px solid #f0f0f0;background:linear-gradient(to right,#1a1a1a,#2e2e2e);display:flex;align-items:center;gap:8px}
+.upload-head span{font-weight:800;font-size:.88rem;color:#fff;text-transform:uppercase;letter-spacing:.6px}
+.upload-head i{color:#ff6b7a}
+.upload-body{padding:20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#555;margin-bottom:5px}
+.field label span{color:#C41E3A}
+.field input,.field select{width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:7px;font-size:.9rem;font-family:'Inter',sans-serif;outline:none;transition:.2s;background:#fff;color:#1a1a1a}
+.field input:focus,.field select:focus{border-color:#C41E3A;box-shadow:0 0 0 3px rgba(196,30,58,.07)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.file-drop{border:2px dashed #e0e0e0;border-radius:9px;padding:22px;text-align:center;cursor:pointer;transition:.2s;background:#fafafa;position:relative}
+.file-drop:hover,.file-drop.drag-over{border-color:#C41E3A;background:rgba(196,30,58,.03)}
+.file-drop i{font-size:2rem;display:block;margin-bottom:8px}
+.file-drop p{font-size:.82rem;color:#888;margin:0}
+.file-drop .file-name{font-size:.82rem;font-weight:700;color:#1a1a1a;margin-top:6px}
+/* E-paper list */
+.epaper-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.epaper-card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.03);transition:.15s}
+.epaper-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-2px)}
+.epaper-thumb{height:160px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.epaper-thumb img{width:100%;height:100%;object-fit:cover}
+.epaper-thumb .no-thumb{text-align:center;color:#ccc}
+.epaper-thumb .no-thumb i{font-size:2.5rem;display:block;margin-bottom:6px}
+.epaper-thumb .no-thumb p{font-size:.75rem}
+.epaper-thumb .overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);opacity:0;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.epaper-card:hover .overlay{opacity:1}
+.overlay-btn{width:36px;height:36px;border-radius:8px;background:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:#333;transition:.15s}
+.overlay-btn:hover{background:#C41E3A;color:#fff}
+.epaper-info{padding:12px 14px;border-top:1px solid #f0f0f0}
+.epaper-title{font-weight:700;font-size:.86rem;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;font-family:'Noto Sans Devanagari','Inter',sans-serif}
+.epaper-meta{font-size:.74rem;color:#888;display:flex;gap:8px;flex-wrap:wrap}
+.epaper-meta span{display:flex;align-items:center;gap:3px}
+.epaper-meta i{color:#C41E3A;font-size:.65rem}
+.epaper-actions{display:flex;gap:6px;margin-top:8px}
+.empty-grid{text-align:center;padding:60px;color:#bbb;background:#fff;border:1px solid #e5e5e5;border-radius:10px}
+.empty-grid i{font-size:3rem;display:block;margin-bottom:12px;color:#eee}
+.progress-bar-wrap{background:#f0f0f0;border-radius:5px;height:6px;margin-top:12px;overflow:hidden;display:none}
+.progress-bar{height:100%;background:#C41E3A;border-radius:5px;width:0;transition:width .3s}
+@media(max-width:1100px){.two-col{grid-template-columns:1fr}.epaper-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.epaper-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script src="shared.js"></script>
+<script>
+checkAuth();
+injectSidebar('epaper.html');
+document.getElementById('pageTitle').textContent = 'E-Paper Manager';
+
+let pdfFile = null, thumbFile = null;
+
+function render() {
+  document.getElementById('pageBody').innerHTML = `
+  <div class="two-col">
+    <!-- Upload form -->
+    <div>
+      <div class="upload-card">
+        <div class="upload-head"><i class="fa-solid fa-file-arrow-up"></i><span>Upload New E-Paper</span></div>
+        <div class="upload-body">
+          <div class="form-row">
+            <div class="field">
+              <label>Title (Hindi) <span>*</span></label>
+              <input type="text" id="titleHi" style="font-family:'Noto Sans Devanagari','Inter',sans-serif;" placeholder="ई-पेपर का शीर्षक…">
+            </div>
+            <div class="field">
+              <label>Title (English)</label>
+              <input type="text" id="titleEn" placeholder="Edition title…">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Edition Name</label>
+              <input type="text" id="edition" placeholder="e.g. Daily Edition, Weekend Special…">
+            </div>
+            <div class="field">
+              <label>City</label>
+              <input type="text" id="city" placeholder="e.g. Delhi, Mumbai, Lucknow…">
+            </div>
+          </div>
+          <div class="field">
+            <label>Edition Date <span>*</span></label>
+            <input type="date" id="editionDate" value="${new Date().toISOString().split('T')[0]}">
+          </div>
+
+          <!-- PDF Upload -->
+          <div class="field">
+            <label>PDF File <span>*</span></label>
+            <div class="file-drop" id="pdfDrop" onclick="document.getElementById('pdfInput').click()"
+              ondragover="onDrag(event,'pdfDrop',true)" ondragleave="onDrag(event,'pdfDrop',false)" ondrop="onFileDrop(event,'pdf')">
+              <i class="fa-solid fa-file-pdf" style="color:#C41E3A;"></i>
+              <p>Click or drag & drop PDF here</p>
+              <p style="font-size:.73rem;color:#bbb;margin-top:4px;">Max 50MB</p>
+              <div class="file-name" id="pdfName" style="display:none;"></div>
+            </div>
+            <input type="file" id="pdfInput" accept=".pdf" style="display:none" onchange="onFileSelect(this,'pdf')">
+            <div class="progress-bar-wrap" id="pdfProgress"><div class="progress-bar" id="pdfProgressBar"></div></div>
+          </div>
+
+          <!-- Thumbnail Upload -->
+          <div class="field">
+            <label>Thumbnail Image</label>
+            <div class="file-drop" id="thumbDrop" onclick="document.getElementById('thumbInput').click()"
+              ondragover="onDrag(event,'thumbDrop',true)" ondragleave="onDrag(event,'thumbDrop',false)" ondrop="onFileDrop(event,'thumb')">
+              <i class="fa-solid fa-image" style="color:#888;"></i>
+              <p>Click or drag & drop image</p>
+              <p style="font-size:.73rem;color:#bbb;margin-top:4px;">JPG, PNG — First page screenshot works well</p>
+              <div class="file-name" id="thumbName" style="display:none;"></div>
+            </div>
+            <input type="file" id="thumbInput" accept="image/*" style="display:none" onchange="onFileSelect(this,'thumb')">
+          </div>
+
+          <button class="btn btn-red" onclick="uploadEpaper()" id="uploadBtn" style="width:100%;justify-content:center;padding:12px;font-size:.9rem;">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload E-Paper
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div>
+      <div class="card">
+        <div class="card-head"><h3><i class="fa-solid fa-circle-info" style="color:#C41E3A;"></i> Upload Tips</h3></div>
+        <div class="card-body" style="font-size:.83rem;color:#555;line-height:1.9;">
+          <ul style="padding-left:16px;">
+            <li>Use compressed PDF for faster loading</li>
+            <li>Thumbnail: take a screenshot of the front page</li>
+            <li>Recommended size: 800×1100px for thumbnail</li>
+            <li>PDF max size: 50MB (compress at smallpdf.com)</li>
+            <li>City and edition help readers find local papers</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- E-papers list -->
+  <div style="margin-top:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h2 style="font-weight:800;font-size:1rem;color:#1a1a1a;">All E-Papers</h2>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="epSearch" placeholder="Search by title or city…" style="padding:7px 12px;border:1.5px solid #e0e0e0;border-radius:7px;font-size:.83rem;font-family:'Inter',sans-serif;outline:none;width:200px;" oninput="filterPapers(this.value)">
+      </div>
+    </div>
+    <div id="epaperGrid"><div style="text-align:center;padding:40px;color:#aaa;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div></div>
+  </div>`;
+
+  loadEpapers();
+}
+
+let allPapers = [];
+
+async function loadEpapers() {
+  try {
+    const data = await apiFetch('epapers');
+    allPapers = data.data?.epapers || [];
+    renderGrid(allPapers);
+  } catch {
+    document.getElementById('epaperGrid').innerHTML = '<div class="empty-grid"><i class="fa-solid fa-triangle-exclamation" style="color:#C41E3A;"></i><p>Error loading e-papers.</p></div>';
+  }
+}
+
+function filterPapers(q) {
+  const lower = q.toLowerCase();
+  const filtered = q ? allPapers.filter(p =>
+    (p.title_hi||'').toLowerCase().includes(lower) ||
+    (p.title_en||'').toLowerCase().includes(lower) ||
+    (p.city||'').toLowerCase().includes(lower) ||
+    (p.edition||'').toLowerCase().includes(lower)
+  ) : allPapers;
+  renderGrid(filtered);
+}
+
+function renderGrid(papers) {
+  const grid = document.getElementById('epaperGrid');
+  if (!papers.length) {
+    grid.innerHTML = '<div class="empty-grid"><i class="fa-solid fa-file-pdf"></i><p>No e-papers uploaded yet. Use the form above to upload the first one.</p></div>';
+    return;
+  }
+  grid.innerHTML = `<div class="epaper-grid">${papers.map(p => `
+    <div class="epaper-card">
+      <div class="epaper-thumb">
+        ${p.thumbnail
+          ? `<img src="${p.thumbnail}" alt="${p.title_en || p.title_hi}">`
+          : `<div class="no-thumb"><i class="fa-solid fa-file-pdf"></i><p>No Preview</p></div>`}
+        <div class="overlay">
+          ${p.pdf_url ? `<a href="${p.pdf_url}" target="_blank" title="View PDF"><button class="overlay-btn"><i class="fa-solid fa-eye"></i></button></a>` : ''}
+          ${p.pdf_url ? `<a href="${p.pdf_url}" download title="Download PDF"><button class="overlay-btn"><i class="fa-solid fa-download"></i></button></a>` : ''}
+          <button class="overlay-btn" title="Delete" onclick="deleteEpaper(${p.id})" style="background:#C41E3A;color:#fff;"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+      <div class="epaper-info">
+        <div class="epaper-title">${p.title_hi || p.title_en || 'Untitled'}</div>
+        <div class="epaper-meta">
+          ${p.city ? `<span><i class="fa-solid fa-location-dot"></i>${p.city}</span>` : ''}
+          ${p.edition ? `<span><i class="fa-solid fa-newspaper"></i>${p.edition}</span>` : ''}
+          ${p.edition_date ? `<span><i class="fa-solid fa-calendar"></i>${formatDate(p.edition_date)}</span>` : ''}
+        </div>
+        <div class="epaper-actions">
+          ${p.pdf_url ? `<a href="${p.pdf_url}" target="_blank" class="btn btn-outline btn-sm" style="flex:1;justify-content:center;"><i class="fa-solid fa-file-pdf" style="color:#C41E3A;"></i> View PDF</a>` : ''}
+          <button class="btn btn-outline btn-sm del" onclick="deleteEpaper(${p.id})" style="color:#C41E3A;border-color:#C41E3A;"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function onDrag(e, id, over) {
+  e.preventDefault();
+  document.getElementById(id).classList.toggle('drag-over', over);
+}
+
+function onFileDrop(e, type) {
+  e.preventDefault();
+  const id = type === 'pdf' ? 'pdfDrop' : 'thumbDrop';
+  document.getElementById(id).classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file, type);
+}
+
+function onFileSelect(input, type) {
+  if (input.files[0]) processFile(input.files[0], type);
+}
+
+function processFile(file, type) {
+  if (type === 'pdf') {
+    if (!file.name.endsWith('.pdf')) { toast('Please select a PDF file', 'error'); return; }
+    if (file.size > 50 * 1024 * 1024) { toast('PDF too large (max 50MB)', 'error'); return; }
+    pdfFile = file;
+    const nameEl = document.getElementById('pdfName');
+    nameEl.textContent = `✓ ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)`;
+    nameEl.style.display = 'block';
+    document.querySelector('#pdfDrop p').style.color = '#16a34a';
+  } else {
+    if (!file.type.startsWith('image/')) { toast('Please select an image file', 'error'); return; }
+    thumbFile = file;
+    const nameEl = document.getElementById('thumbName');
+    nameEl.textContent = `✓ ${file.name}`;
+    nameEl.style.display = 'block';
+    const url = URL.createObjectURL(file);
+    document.getElementById('thumbDrop').innerHTML = `<img src="${url}" style="max-height:80px;object-fit:contain;border-radius:6px;"><p style="margin-top:6px;color:#16a34a;font-size:.78rem;">✓ ${file.name}</p>`;
+  }
+}
+
+async function uploadEpaper() {
+  const titleHi = document.getElementById('titleHi').value.trim();
+  const titleEn = document.getElementById('titleEn').value.trim();
+  const edition = document.getElementById('edition').value.trim();
+  const city = document.getElementById('city').value.trim();
+  const date = document.getElementById('editionDate').value;
+
+  if (!titleHi && !titleEn) { toast('Title is required', 'error'); return; }
+  if (!date) { toast('Edition date is required', 'error'); return; }
+  if (!pdfFile) { toast('PDF file is required', 'error'); return; }
+
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading…';
+
+  try {
+    // Show progress
+    const progress = document.getElementById('pdfProgress');
+    const bar = document.getElementById('pdfProgressBar');
+    progress.style.display = 'block';
+
+    const fd = new FormData();
+    fd.append('pdf', pdfFile);
+    if (thumbFile) fd.append('thumbnail', thumbFile);
+    fd.append('title_hi', titleHi);
+    fd.append('title_en', titleEn);
+    fd.append('edition', edition);
+    fd.append('city', city);
+    fd.append('edition_date', date);
+
+    // Simulate progress
+    let prog = 0;
+    const ticker = setInterval(() => {
+      prog = Math.min(90, prog + Math.random() * 15);
+      bar.style.width = prog + '%';
+    }, 300);
+
+    const r = await fetch(`../api/admin.php?action=upload_epaper&key=${encodeURIComponent(ADMIN_KEY())}`, {
+      method: 'POST', body: fd
+    }).then(res => res.json());
+
+    clearInterval(ticker);
+    bar.style.width = '100%';
+    setTimeout(() => progress.style.display = 'none', 600);
+
+    if (r.success) {
+      toast('E-Paper uploaded successfully!');
+      // Reset form
+      document.getElementById('titleHi').value = '';
+      document.getElementById('titleEn').value = '';
+      document.getElementById('edition').value = '';
+      document.getElementById('city').value = '';
+      document.getElementById('editionDate').value = new Date().toISOString().split('T')[0];
+      pdfFile = null; thumbFile = null;
+      document.getElementById('pdfDrop').innerHTML = `<i class="fa-solid fa-file-pdf" style="color:#C41E3A;"></i><p>Click or drag & drop PDF here</p><p style="font-size:.73rem;color:#bbb;margin-top:4px;">Max 50MB</p><div class="file-name" id="pdfName" style="display:none;"></div>`;
+      document.getElementById('thumbDrop').innerHTML = `<i class="fa-solid fa-image" style="color:#888;"></i><p>Click or drag & drop image</p><p style="font-size:.73rem;color:#bbb;margin-top:4px;">JPG, PNG</p><div class="file-name" id="thumbName" style="display:none;"></div>`;
+      loadEpapers();
+    } else {
+      toast(r.message || 'Upload failed', 'error');
+    }
+  } catch (e) {
+    toast('Upload error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Upload E-Paper';
+  }
+}
+
+async function deleteEpaper(id) {
+  if (!confirm('Delete this e-paper? This will also remove the PDF file.')) return;
+  try {
+    const r = await apiFetch('delete_epaper', { method: 'POST', body: JSON.stringify({ id }) });
+    if (r.success) { toast('E-Paper deleted'); loadEpapers(); }
+    else toast(r.message || 'Delete failed', 'error');
+  } catch { toast('Error', 'error'); }
+}
+
+render();
+</script>
+</body>
+</html>

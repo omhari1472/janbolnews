@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="hi" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>पृष्ठ नहीं मिला — 404 | जनबोल न्यूज़</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="navbar-inject"></div>
+
+<main id="main-content" role="main">
+  <div class="container">
+
+    <div class="notfound-page">
+      <div class="notfound-404 en-serif">404</div>
+
+      <h1 class="notfound-title hi-text">पृष्ठ नहीं मिला</h1>
+      <p class="notfound-sub hi-text">
+        आपके द्वारा ढूंढा गया पृष्ठ उपलब्ध नहीं है या हटा दिया गया है।<br>
+        <small style="font-size:13px;color:var(--gray-400);">The page you are looking for does not exist.</small>
+      </p>
+
+      <div style="display:flex;gap:var(--space-md);flex-wrap:wrap;justify-content:center;">
+        <a href="/index.html" class="btn-primary hi-text">🏠 होम पर जाएं</a>
+        <a href="/search.html" class="btn-primary hi-text" style="background:var(--gray-800);">🔍 खोजें</a>
+      </div>
+
+      <!-- Popular Categories -->
+      <div style="margin-top:var(--space-2xl);max-width:500px;width:100%;">
+        <p class="hi-text" style="color:var(--gray-500);font-size:14px;margin-bottom:var(--space-md);">या किसी श्रेणी पर जाएं:</p>
+        <div id="cat-links" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+          <!-- Added by JS -->
+        </div>
+      </div>
+
+      <!-- Recent Articles -->
+      <div style="margin-top:var(--space-2xl);max-width:700px;width:100%;text-align:left;">
+        <div class="section-heading">
+          <h2 class="section-title hi-text">
+            हाल की खबरें
+            <span class="en-sub">LATEST NEWS</span>
+          </h2>
+        </div>
+        <div id="recent-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-md);">
+          <!-- Cards added by JS -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div id="footer-inject"></div>
+
+<script src="/js/config.js"></script>
+<script src="/js/news.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/ads.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Category links
+    const catsEl = document.getElementById('cat-links');
+    if (catsEl && window.JN_CONFIG) {
+      const lang = getLang();
+      window.JN_CONFIG.categories.slice(0, 8).forEach(function(cat) {
+        const chip = document.createElement('a');
+        chip.href = '/category.html?cat=' + cat.slug;
+        chip.className = 'tag-chip hi-text';
+        chip.textContent = lang === 'hi' ? cat.hi : cat.en;
+        catsEl.appendChild(chip);
+      });
+    }
+
+    // Recent articles
+    const grid = document.getElementById('recent-grid');
+    if (grid && window.newsAPI) {
+      grid.appendChild(renderSkeleton(3, 160));
+      newsAPI.fetchArticles({ limit: 3, page: 1 }).then(function(data) {
+        const articles = data.articles || data.data || [];
+        grid.innerHTML = '';
+        articles.forEach(function(art) {
+          grid.appendChild(renderArticleCard(art, { size: 'sm', showExcerpt: false }));
+        });
+      }).catch(function() {
+        grid.innerHTML = '';
+      });
+    }
+  });
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="hi" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="index, follow">
+  <!-- Dynamic meta injected by JS -->
+  <title id="page-title">समाचार लोड हो रहा है… | जनबोल न्यूज़</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- AMP link injected dynamically -->
+</head>
+<body>
+
+<div id="navbar-inject"></div>
+
+<main id="main-content" role="main">
+
+  <!-- Breadcrumb + Article wrap -->
+  <div class="page-layout" id="article-layout">
+
+    <!-- Main Column -->
+    <div class="main-content">
+
+      <!-- Article skeleton (shown while loading) -->
+      <div id="article-loading" class="article-detail-wrap">
+        <div style="padding:12px 24px;border-bottom:1px solid var(--gray-100);">
+          <div class="skeleton skeleton-line w-60" style="height:12px;margin-bottom:8px;"></div>
+        </div>
+        <div style="padding:24px;">
+          <div class="skeleton skeleton-line w-40" style="height:14px;margin-bottom:12px;"></div>
+          <div class="skeleton skeleton-line w-80" style="height:28px;margin-bottom:8px;"></div>
+          <div class="skeleton skeleton-line w-60" style="height:22px;margin-bottom:20px;"></div>
+          <div class="skeleton" style="height:400px;margin-bottom:20px;border-radius:var(--radius-sm);"></div>
+          <div class="skeleton skeleton-line w-80" style="height:14px;margin-bottom:8px;"></div>
+          <div class="skeleton skeleton-line w-80" style="height:14px;margin-bottom:8px;"></div>
+          <div class="skeleton skeleton-line w-60" style="height:14px;margin-bottom:8px;"></div>
+          <div class="skeleton skeleton-line w-80" style="height:14px;margin-bottom:8px;"></div>
+          <div class="skeleton skeleton-line w-40" style="height:14px;"></div>
+        </div>
+      </div>
+
+      <!-- Actual article content (hidden until loaded) -->
+      <div id="article-container" class="hidden"></div>
+
+      <!-- Related Articles -->
+      <div id="related-section" class="hidden">
+        <div class="section-heading" style="margin-top:var(--space-xl);">
+          <h2 class="section-title hi-text">
+            संबंधित समाचार
+            <span class="en-sub">RELATED NEWS</span>
+          </h2>
+        </div>
+        <div id="related-grid" class="related-grid"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" aria-label="साइडबार">
+
+      <!-- Trending -->
+      <div class="sidebar-widget">
+        <div class="widget-header">
+          <span class="hi-text">🔥 ट्रेंडिंग</span>
+          <span class="en">TRENDING</span>
+        </div>
+        <div class="widget-body" id="trending-list">
+          <div style="padding:8px 0;">
+            <div class="skeleton skeleton-line w-80" style="height:12px;margin-bottom:6px;"></div>
+            <div class="skeleton skeleton-line w-60" style="height:12px;margin-bottom:12px;"></div>
+            <div class="skeleton skeleton-line w-80" style="height:12px;margin-bottom:6px;"></div>
+            <div class="skeleton skeleton-line w-60" style="height:12px;margin-bottom:12px;"></div>
+            <div class="skeleton skeleton-line w-80" style="height:12px;margin-bottom:6px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ad Slot -->
+      <div class="ad-slot ad-slot-square" aria-label="Advertisement"></div>
+
+      <!-- Categories Widget -->
+      <div class="sidebar-widget" style="margin-top:var(--space-md);">
+        <div class="widget-header">
+          <span class="hi-text">📁 श्रेणियाँ</span>
+          <span class="en">CATEGORIES</span>
+        </div>
+        <div class="widget-body" id="categories-widget">
+          <!-- loaded by JS -->
+        </div>
+      </div>
+
+      <!-- Ad Slot 2 -->
+      <div class="ad-slot ad-slot-rect" style="margin-top:var(--space-md);" aria-label="Advertisement"></div>
+
+    </aside>
+
+  </div>
+
+</main>
+
+<div id="footer-inject"></div>
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script src="/js/news.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/ads.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  const newsAPI = new NewsAPI();
+
+  /* ── Get slug from URL ── */
+  function getSlug() {
+    const params = new URLSearchParams(window.location.search);
+    const slugParam = params.get('slug');
+    if (slugParam) return slugParam;
+    // Try path-based: /article/some-slug
+    const pathMatch = window.location.pathname.match(/\/article\/(.+)/);
+    if (pathMatch) return decodeURIComponent(pathMatch[1]);
+    return null;
+  }
+
+  /* ── Breadcrumb ── */
+  function buildBreadcrumb(article) {
+    const lang = getLang();
+    const catSlug = article.category_slug || '';
+    const catName = getCategoryName(catSlug) || article.category_name || '';
+    const title = getLocalText(article, 'title') || article.title || '';
+    const shortTitle = title.length > 50 ? title.substring(0, 50) + '…' : title;
+
+    const nav = document.createElement('nav');
+    nav.className = 'breadcrumb';
+    nav.setAttribute('aria-label', 'Breadcrumb');
+    nav.innerHTML =
+      `<a href="/index.html" class="hi-text">होम</a>
+       <span class="sep">›</span>
+       <a href="/category.html?cat=${catSlug}" class="hi-text">${catName}</a>
+       <span class="sep">›</span>
+       <span class="current hi-text">${shortTitle}</span>`;
+    return nav;
+  }
+
+  /* ── Share buttons ── */
+  function buildShareRow(article) {
+    const title = encodeURIComponent(getLocalText(article, 'title') || article.title || '');
+    const url   = encodeURIComponent(window.location.href);
+
+    const row = document.createElement('div');
+    row.className = 'article-share-row';
+    row.innerHTML = `
+      <span class="share-label hi-text">शेयर करें:</span>
+      <button class="share-btn whatsapp" title="WhatsApp पर शेयर करें" onclick="window.open('https://api.whatsapp.com/send?text=${title}%20${url}','_blank')">💬</button>
+      <button class="share-btn facebook" title="Facebook पर शेयर करें" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=${url}','_blank')">f</button>
+      <button class="share-btn twitter" title="Twitter/X पर शेयर करें" onclick="window.open('https://twitter.com/intent/tweet?text=${title}&url=${url}','_blank')">𝕏</button>
+      <button class="share-btn copy" title="लिंक कॉपी करें" id="copy-link-btn">🔗</button>
+    `;
+
+    row.querySelector('#copy-link-btn').addEventListener('click', function() {
+      navigator.clipboard.writeText(window.location.href).then(function() {
+        showToast('लिंक कॉपी हो गया!', 'success');
+      }).catch(function() {
+        showToast('कॉपी नहीं हो सका।', 'error');
+      });
+    });
+
+    return row;
+  }
+
+  /* ── Render full article ── */
+  function renderArticle(article) {
+    const container = document.getElementById('article-container');
+    const loadingEl = document.getElementById('article-loading');
+
+    const title    = getLocalText(article, 'title')   || article.title || '';
+    const subtitle = getLocalText(article, 'subtitle') || article.subtitle || getLocalText(article, 'excerpt') || '';
+    const content  = getLocalText(article, 'content') || article.content || '';
+    const catSlug  = article.category_slug || '';
+    const catName  = getCategoryName(catSlug) || article.category_name || '';
+    const author   = article.author_name || 'जनबोल न्यूज़';
+    const date     = formatDate(article.published_at || article.created_at);
+    const views    = article.views || article.view_count || 0;
+    const img      = article.featured_image || article.image || '';
+    const imgCapt  = article.image_caption || '';
+    const tags     = article.tags || [];
+
+    // Update page meta
+    document.title = title + ' | जनबोल न्यूज़';
+    document.getElementById('page-title') && (document.getElementById('page-title').textContent = title + ' | जनबोल न्यूज़');
+
+    // OG meta
+    setMeta('og:title', title + ' | जनबोल न्यूज़');
+    setMeta('og:description', subtitle || article.excerpt || '');
+    if (img) setMeta('og:image', img);
+    setMeta('og:url', window.location.href);
+    setMeta('description', subtitle || article.excerpt || '');
+
+    // AMP link
+    const ampLink = document.createElement('link');
+    ampLink.rel  = 'amphtml';
+    ampLink.href = '/amp/article/' + encodeURIComponent(article.slug || '');
+    document.head.appendChild(ampLink);
+
+    // JSON-LD
+    injectArticleSchema(article);
+
+    // Build DOM
+    const wrap = document.createElement('article');
+    wrap.className = 'article-detail-wrap fade-in';
+
+    // Breadcrumb
+    wrap.appendChild(buildBreadcrumb(article));
+
+    // Header
+    const header = document.createElement('header');
+    header.className = 'article-header';
+
+    const catTag = document.createElement('a');
+    catTag.href = '/category.html?cat=' + catSlug;
+    catTag.className = 'article-category-tag hi-text';
+    catTag.textContent = catName;
+
+    const titleEl = document.createElement('h1');
+    titleEl.className = 'article-title hi-text';
+    titleEl.textContent = title;
+
+    header.appendChild(catTag);
+    header.appendChild(titleEl);
+
+    if (subtitle) {
+      const subEl = document.createElement('p');
+      subEl.className = 'article-subtitle hi-text';
+      subEl.textContent = subtitle;
+      header.appendChild(subEl);
+    }
+
+    // Meta row
+    const metaRow = document.createElement('div');
+    metaRow.className = 'article-meta-row';
+
+    const authorEl = document.createElement('div');
+    authorEl.className = 'article-author';
+    authorEl.innerHTML = `
+      <div class="author-avatar">✍</div>
+      <div>
+        <div class="author-name hi-text">${author}</div>
+      </div>
+    `;
+
+    const dateEl = document.createElement('span');
+    dateEl.className = 'article-meta-date hi-text';
+    dateEl.innerHTML = '🕐 ' + date;
+
+    const viewsEl = document.createElement('span');
+    viewsEl.className = 'article-meta-views';
+    viewsEl.innerHTML = '👁 ' + formatNumber(views) + ' व्यूज़';
+
+    metaRow.appendChild(authorEl);
+    metaRow.appendChild(dateEl);
+    metaRow.appendChild(viewsEl);
+    metaRow.appendChild(buildShareRow(article));
+    header.appendChild(metaRow);
+
+    wrap.appendChild(header);
+
+    // Featured image
+    if (img) {
+      const imgSection = document.createElement('div');
+      imgSection.className = 'article-featured-img';
+      const imgEl = document.createElement('img');
+      imgEl.src = img;
+      imgEl.alt = title;
+      imgEl.loading = 'eager';
+      imgEl.onerror = function() { this.style.display = 'none'; };
+      imgSection.appendChild(imgEl);
+      if (imgCapt) {
+        const capt = document.createElement('div');
+        capt.className = 'article-img-caption hi-text';
+        capt.textContent = imgCapt;
+        imgSection.appendChild(capt);
+      }
+      wrap.appendChild(imgSection);
+    }
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'article-body';
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'article-content hi-text';
+    // Set as innerHTML to allow HTML content from CMS
+    // Sanitize basic: allow only safe tags
+    contentDiv.innerHTML = sanitizeContent(content);
+    body.appendChild(contentDiv);
+    wrap.appendChild(body);
+
+    // Tags
+    if (tags.length) {
+      const tagsDiv = document.createElement('div');
+      tagsDiv.className = 'article-tags';
+      const tagLabel = document.createElement('span');
+      tagLabel.className = 'tag-label hi-text';
+      tagLabel.textContent = 'टैग:';
+      tagsDiv.appendChild(tagLabel);
+      tags.forEach(function(tag) {
+        const chip = document.createElement('a');
+        chip.href = '/search.html?q=' + encodeURIComponent(tag);
+        chip.className = 'tag-chip hi-text';
+        chip.textContent = tag;
+        tagsDiv.appendChild(chip);
+      });
+      wrap.appendChild(tagsDiv);
+    }
+
+    container.innerHTML = '';
+    container.appendChild(wrap);
+    container.classList.remove('hidden');
+    loadingEl.style.display = 'none';
+  }
+
+  /* ── Basic content sanitizer ── */
+  function sanitizeContent(html) {
+    if (!html) return '';
+    // Allow headings, paragraphs, lists, links, strong, em, blockquote
+    // Strip scripts and iframes
+    return html
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+      .replace(/on\w+="[^"]*"/gi, '')
+      .replace(/javascript:/gi, '');
+  }
+
+  /* ── Meta helper ── */
+  function setMeta(name, content) {
+    let el = document.querySelector('meta[property="' + name + '"], meta[name="' + name + '"]');
+    if (!el) {
+      el = document.createElement('meta');
+      if (name.startsWith('og:')) el.setAttribute('property', name);
+      else el.setAttribute('name', name);
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  }
+
+  /* ── Load Related Articles ── */
+  async function loadRelated(article) {
+    const section = document.getElementById('related-section');
+    const grid    = document.getElementById('related-grid');
+    if (!section || !grid) return;
+
+    try {
+      const data = await newsAPI.fetchArticles({
+        category: article.category_slug,
+        limit: 3,
+        page: 1,
+        exclude: article.slug,
+      });
+      const articles = (data.data?.items || data.data || []).filter(a => a.slug !== article.slug).slice(0, 3);
+      if (!articles.length) return;
+
+      grid.innerHTML = '';
+      articles.forEach(function(art) {
+        const card = renderArticleCard(art, { size: 'md', showExcerpt: false });
+        grid.appendChild(card);
+      });
+      section.classList.remove('hidden');
+    } catch (e) {}
+  }
+
+  /* ── Load Trending Sidebar ── */
+  async function loadTrending() {
+    const list = document.getElementById('trending-list');
+    if (!list) return;
+    try {
+      const data = await newsAPI.fetchArticles({ limit: 7, page: 1, sort: 'views' });
+      const articles = data.data?.items || data.data || [];
+      list.innerHTML = '';
+      articles.forEach(function(art, i) {
+        list.appendChild(renderArticleListItem(art, i));
+      });
+    } catch (e) {}
+  }
+
+  /* ── Load Categories Widget ── */
+  async function loadCategoriesWidget() {
+    const el = document.getElementById('categories-widget');
+    if (!el || !window.JN_CONFIG) return;
+    el.innerHTML = '';
+    window.JN_CONFIG.categories.forEach(function(cat) {
+      const a = document.createElement('a');
+      a.href = '/category.html?cat=' + cat.slug;
+      a.className = 'article-list-item hi-text';
+      a.style.cssText = 'padding:8px 0;border-bottom:1px solid var(--gray-100);display:flex;justify-content:space-between;align-items:center;';
+      a.innerHTML = `<span>${getLang() === 'hi' ? cat.hi : cat.en}</span> <span style="color:var(--red-primary);font-size:13px;">›</span>`;
+      el.appendChild(a);
+    });
+  }
+
+  /* ── Init ── */
+  document.addEventListener('DOMContentLoaded', async function() {
+    const slug = getSlug();
+    if (!slug) {
+      document.getElementById('article-loading').innerHTML = `
+        <div style="padding:40px;text-align:center;">
+          <p class="hi-text" style="color:var(--gray-500);font-size:18px;">लेख नहीं मिला।</p>
+          <a href="/index.html" class="btn-primary hi-text" style="display:inline-flex;margin-top:16px;">होम पर जाएं</a>
+        </div>`;
+      return;
+    }
+
+    try {
+      const article = await newsAPI.fetchArticle(slug);
+      renderArticle(article.article || article);
+      loadRelated(article.article || article);
+
+      // Increment view after delay
+      setTimeout(function() {
+        newsAPI.incrementView(slug);
+      }, (window.JN_CONFIG && window.JN_CONFIG.viewIncrementDelay) || 5000);
+
+    } catch (e) {
+      const loadingEl = document.getElementById('article-loading');
+      if (e.status === 404) {
+        loadingEl.innerHTML = `
+          <div style="padding:60px;text-align:center;">
+            <div style="font-size:48px;margin-bottom:16px;">📰</div>
+            <h2 class="hi-text" style="font-size:22px;font-weight:700;margin-bottom:8px;">लेख नहीं मिला</h2>
+            <p class="hi-text" style="color:var(--gray-500);margin-bottom:24px;">यह समाचार उपलब्ध नहीं है या हटा दिया गया है।</p>
+            <a href="/index.html" class="btn-primary hi-text">होम पर जाएं</a>
+          </div>`;
+      } else {
+        loadingEl.innerHTML = `
+          <div style="padding:40px;text-align:center;">
+            <p class="hi-text" style="color:var(--gray-500);">समाचार लोड नहीं हो सका। कृपया पुनः प्रयास करें।</p>
+            <button onclick="location.reload()" class="btn-primary hi-text" style="margin-top:16px;">पुनः प्रयास करें</button>
+          </div>`;
+      }
+    }
+
+    loadTrending();
+    loadCategoriesWidget();
+  });
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Breaking News — Janbolnews Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.two-col{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:start}
+/* Quick add form */
+.add-form{background:#fff;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.03);margin-bottom:18px}
+.add-form-head{padding:12px 18px;border-bottom:1px solid #f0f0f0;background:linear-gradient(to right,#C41E3A,#a01830);display:flex;align-items:center;gap:8px}
+.add-form-head span{font-weight:800;font-size:.9rem;color:#fff;text-transform:uppercase;letter-spacing:.5px}
+.add-form-head i{color:rgba(255,255,255,.8);font-size:.85rem}
+.add-form-body{padding:18px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#555;margin-bottom:5px}
+.field input,.field select{width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:7px;font-size:.9rem;font-family:'Inter',sans-serif;outline:none;transition:.2s;background:#fff;color:#1a1a1a}
+.field input:focus,.field select:focus{border-color:#C41E3A;box-shadow:0 0 0 3px rgba(196,30,58,.07)}
+.hindi-input{font-family:'Noto Sans Devanagari','Inter',sans-serif;}
+/* Breaking list */
+.breaking-list{background:#fff;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.list-head{padding:13px 18px;border-bottom:1px solid #f0f0f0;background:#fafafa;display:flex;align-items:center;justify-content:space-between}
+.list-head h3{font-weight:800;font-size:.85rem;color:#1a1a1a;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:7px}
+.list-head h3 i{color:#C41E3A}
+.break-item{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;border-bottom:1px solid #f5f5f5;transition:.1s;position:relative}
+.break-item:last-child{border-bottom:none}
+.break-item:hover{background:#fdf6f7}
+.drag-handle{color:#ccc;cursor:grab;font-size:.9rem;padding-top:2px;flex-shrink:0;user-select:none}
+.drag-handle:active{cursor:grabbing}
+.break-item.dragging{opacity:.5;background:#fff8f9;border:2px dashed #C41E3A}
+.break-item.drag-over{border-top:3px solid #C41E3A}
+.break-content{flex:1;min-width:0}
+.break-text-hi{font-family:'Noto Sans Devanagari','Inter',sans-serif;font-weight:600;font-size:.88rem;color:#1a1a1a;line-height:1.4;margin-bottom:3px}
+.break-text-en{font-size:.78rem;color:#888;margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.break-url{font-size:.74rem;color:#1d4ed8;text-decoration:none;display:flex;align-items:center;gap:4px}
+.break-url:hover{text-decoration:underline}
+.break-meta{font-size:.72rem;color:#aaa;margin-top:3px}
+.break-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.toggle{position:relative;width:38px;height:22px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#e0e0e0;border-radius:22px;cursor:pointer;transition:.25s}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle input:checked + .toggle-slider{background:#16a34a}
+.toggle input:checked + .toggle-slider::before{left:19px}
+.btn-icon{width:30px;height:30px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:.78rem;cursor:pointer;border:1.5px solid #e5e5e5;background:#fff;color:#555;transition:.15s}
+.btn-icon:hover{border-color:#C41E3A;color:#C41E3A}
+.btn-icon.del:hover{background:#fee2e2;border-color:#C41E3A;color:#C41E3A}
+.empty{text-align:center;padding:48px;color:#bbb}
+.empty i{font-size:2rem;display:block;margin-bottom:10px;color:#e5e5e5}
+/* Edit modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:520px;box-shadow:0 24px 80px rgba(0,0,0,.3)}
+.modal h3{font-weight:800;font-size:1rem;margin-bottom:20px;color:#1a1a1a;display:flex;align-items:center;gap:8px}
+.modal h3 i{color:#C41E3A}
+/* Ticker preview */
+.ticker-preview{background:#C41E3A;border-radius:8px;overflow:hidden;margin-bottom:18px}
+.ticker-label{background:#1a1a1a;color:#fff;font-size:.72rem;font-weight:700;padding:4px 12px;text-transform:uppercase;letter-spacing:.8px;display:inline-block}
+.ticker-scroll{padding:8px 16px;white-space:nowrap;overflow:hidden;font-family:'Noto Sans Devanagari','Inter',sans-serif;font-size:.88rem;font-weight:600;color:#fff}
+.ticker-scroll span{display:inline-block;animation:tickerScroll 20s linear infinite}
+@keyframes tickerScroll{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+.stat-mini{display:flex;gap:12px;margin-bottom:16px}
+.sm-card{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:12px 16px;flex:1;text-align:center}
+.sm-val{font-weight:800;font-size:1.4rem;color:#1a1a1a}
+.sm-label{font-size:.72rem;color:#888;margin-top:2px}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script src="shared.js"></script>
+<script>
+checkAuth();
+injectSidebar('breaking.html');
+document.getElementById('pageTitle').textContent = 'Breaking News';
+
+let items = [];
+let dragSrc = null;
+
+function render() {
+  document.getElementById('pageBody').innerHTML = `
+  <div class="stat-mini" id="breakStats">
+    <div class="sm-card"><div class="sm-val" id="totalCount">—</div><div class="sm-label">Total Items</div></div>
+    <div class="sm-card"><div class="sm-val" id="activeCount" style="color:#16a34a;">—</div><div class="sm-label">Active (Live)</div></div>
+    <div class="sm-card"><div class="sm-val" id="inactiveCount" style="color:#aaa;">—</div><div class="sm-label">Inactive</div></div>
+  </div>
+
+  <div class="ticker-preview" id="tickerPreview" style="display:none">
+    <span class="ticker-label"><i class="fa-solid fa-bolt"></i> BREAKING</span>
+    <div class="ticker-scroll"><span id="tickerText">Loading…</span></div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <!-- Quick add -->
+      <div class="add-form">
+        <div class="add-form-head"><i class="fa-solid fa-plus"></i><span>Quick Add Breaking News</span></div>
+        <div class="add-form-body">
+          <div class="field">
+            <label>Hindi Text <span style="color:#C41E3A;">*</span></label>
+            <input type="text" id="newTextHi" class="hindi-input" placeholder="ब्रेकिंग न्यूज़ का पाठ यहाँ लिखें…" autofocus>
+          </div>
+          <div class="field">
+            <label>English Text (Optional)</label>
+            <input type="text" id="newTextEn" placeholder="Optional English text…">
+          </div>
+          <div class="field">
+            <label>Link URL (Optional)</label>
+            <input type="url" id="newUrl" placeholder="https://janbolnews.com/article/…">
+          </div>
+          <button class="btn btn-red" onclick="addItem()" style="width:100%;justify-content:center;padding:11px;">
+            <i class="fa-solid fa-bolt"></i> Add Breaking News
+          </button>
+        </div>
+      </div>
+
+      <!-- List -->
+      <div class="breaking-list">
+        <div class="list-head">
+          <h3><i class="fa-solid fa-list"></i> All Breaking News</h3>
+          <span style="font-size:.78rem;color:#aaa;">Drag to reorder</span>
+        </div>
+        <div id="breakingList"><div class="empty"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div>
+      <div class="card">
+        <div class="card-head"><h3><i class="fa-solid fa-circle-info" style="color:#C41E3A;"></i> How It Works</h3></div>
+        <div class="card-body" style="font-size:.83rem;color:#555;line-height:1.8;">
+          <p style="margin-bottom:8px;">Breaking news items appear in the scrolling ticker at the top of the news site.</p>
+          <ul style="padding-left:16px;">
+            <li>Toggle active/inactive per item</li>
+            <li>Drag handles to reorder</li>
+            <li>Only active items show in ticker</li>
+            <li>Click Edit to modify any item</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:0;">
+        <div class="card-head"><h3><i class="fa-solid fa-bolt" style="color:#C41E3A;"></i> Ticker Settings</h3></div>
+        <div class="card-body">
+          <div class="field">
+            <label>Ticker Speed</label>
+            <select id="tickerSpeed" onchange="saveTickerSpeed()">
+              <option value="slow">Slow</option>
+              <option value="normal" selected>Normal</option>
+              <option value="fast">Fast</option>
+            </select>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="deactivateAll()" style="width:100%;justify-content:center;">
+            <i class="fa-solid fa-stop"></i> Deactivate All
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  loadItems();
+}
+
+async function loadItems() {
+  try {
+    const data = await apiFetch('breaking');
+    items = data.data?.items || [];
+    renderList();
+    updateStats();
+    updateTickerPreview();
+  } catch (e) {
+    document.getElementById('breakingList').innerHTML = `<div class="empty"><i class="fa-solid fa-triangle-exclamation" style="color:#C41E3A;"></i><p>Error loading breaking news</p></div>`;
+  }
+}
+
+function renderList() {
+  const el = document.getElementById('breakingList');
+  if (!items.length) {
+    el.innerHTML = '<div class="empty"><i class="fa-solid fa-bolt"></i><p>No breaking news items yet.</p></div>';
+    return;
+  }
+  el.innerHTML = items.map((item, i) => `
+    <div class="break-item" data-id="${item.id}" data-idx="${i}" draggable="true"
+      ondragstart="onDragStart(event,${i})" ondragover="onDragOver(event)" ondrop="onItemDrop(event,${i})" ondragend="onDragEnd()">
+      <div class="drag-handle"><i class="fa-solid fa-grip-vertical"></i></div>
+      <div class="break-content">
+        <div class="break-text-hi">${item.text_hi || '—'}</div>
+        ${item.text_en ? `<div class="break-text-en">${item.text_en}</div>` : ''}
+        ${item.url ? `<a href="${item.url}" target="_blank" class="break-url"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:.65rem;"></i> ${item.url.replace(/^https?:\/\//, '').substring(0,40)}</a>` : ''}
+        <div class="break-meta">${formatDate(item.created_at) || 'Recently added'}</div>
+      </div>
+      <div class="break-actions">
+        <label class="toggle" title="${item.active ? 'Click to deactivate' : 'Click to activate'}">
+          <input type="checkbox" ${item.active ? 'checked' : ''} onchange="toggleActive(${item.id}, this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+        <button class="btn-icon" title="Edit" onclick="openEdit(${item.id})"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn-icon del" title="Delete" onclick="deleteItem(${item.id})"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+function updateStats() {
+  const active = items.filter(i => i.active).length;
+  document.getElementById('totalCount').textContent = items.length;
+  document.getElementById('activeCount').textContent = active;
+  document.getElementById('inactiveCount').textContent = items.length - active;
+}
+
+function updateTickerPreview() {
+  const activeItems = items.filter(i => i.active);
+  if (!activeItems.length) { document.getElementById('tickerPreview').style.display = 'none'; return; }
+  document.getElementById('tickerPreview').style.display = 'block';
+  document.getElementById('tickerText').textContent = activeItems.map(i => `🔴 ${i.text_hi || i.text_en}`).join('  |  ');
+}
+
+async function addItem() {
+  const textHi = document.getElementById('newTextHi').value.trim();
+  const textEn = document.getElementById('newTextEn').value.trim();
+  const url = document.getElementById('newUrl').value.trim();
+  if (!textHi) { toast('Hindi text is required', 'error'); document.getElementById('newTextHi').focus(); return; }
+  try {
+    const r = await apiFetch('add_breaking', { method: 'POST', body: JSON.stringify({ text_hi: textHi, text_en: textEn, url, active: 1 }) });
+    if (r.success) {
+      toast('Breaking news added!');
+      document.getElementById('newTextHi').value = '';
+      document.getElementById('newTextEn').value = '';
+      document.getElementById('newUrl').value = '';
+      loadItems();
+    } else toast(r.message || 'Failed to add', 'error');
+  } catch { toast('Error adding item', 'error'); }
+}
+
+async function toggleActive(id, active) {
+  try {
+    const r = await apiFetch('update_breaking', { method: 'POST', body: JSON.stringify({ id, active: active ? 1 : 0 }) });
+    if (r.success) {
+      const item = items.find(i => i.id === id);
+      if (item) item.active = active;
+      updateStats();
+      updateTickerPreview();
+      toast(active ? 'Breaking news activated' : 'Breaking news deactivated');
+    } else toast('Failed to update', 'error');
+  } catch { toast('Error', 'error'); }
+}
+
+async function deleteItem(id) {
+  if (!confirm('Delete this breaking news item?')) return;
+  try {
+    const r = await apiFetch('delete_breaking', { method: 'POST', body: JSON.stringify({ id }) });
+    if (r.success) { toast('Deleted'); loadItems(); }
+    else toast(r.message || 'Delete failed', 'error');
+  } catch { toast('Error', 'error'); }
+}
+
+async function deactivateAll() {
+  if (!confirm('Deactivate all breaking news items?')) return;
+  try {
+    const r = await apiFetch('deactivate_all_breaking', { method: 'POST', body: JSON.stringify({}) });
+    if (r.success) { toast('All deactivated'); loadItems(); }
+    else toast('Failed', 'error');
+  } catch { toast('Error', 'error'); }
+}
+
+function saveTickerSpeed() {
+  const speed = document.getElementById('tickerSpeed').value;
+  apiFetch('save_settings', { method: 'POST', body: JSON.stringify({ ticker_speed: speed }) })
+    .then(() => toast('Ticker speed saved'));
+}
+
+// ── Edit modal ──────────────────────────────────────────────────
+function openEdit(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  const existing = document.getElementById('editModal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-bg';
+  modal.id = 'editModal';
+  modal.innerHTML = `
+  <div class="modal">
+    <h3><i class="fa-solid fa-pen"></i> Edit Breaking News</h3>
+    <div class="field">
+      <label>Hindi Text <span style="color:#C41E3A;">*</span></label>
+      <input type="text" id="editTextHi" class="hindi-input" value="${item.text_hi || ''}">
+    </div>
+    <div class="field">
+      <label>English Text</label>
+      <input type="text" id="editTextEn" value="${item.text_en || ''}">
+    </div>
+    <div class="field">
+      <label>Link URL</label>
+      <input type="url" id="editUrl" value="${item.url || ''}">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px;">
+      <button class="btn btn-red" onclick="saveEdit(${id})" style="flex:1;justify-content:center;">Save Changes</button>
+      <button class="btn btn-outline" onclick="document.getElementById('editModal').remove()" style="flex:1;justify-content:center;">Cancel</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.getElementById('editTextHi').focus();
+}
+
+async function saveEdit(id) {
+  const text_hi = document.getElementById('editTextHi').value.trim();
+  const text_en = document.getElementById('editTextEn').value.trim();
+  const url = document.getElementById('editUrl').value.trim();
+  if (!text_hi) { toast('Hindi text is required', 'error'); return; }
+  try {
+    const r = await apiFetch('update_breaking', { method: 'POST', body: JSON.stringify({ id, text_hi, text_en, url }) });
+    if (r.success) {
+      toast('Updated!');
+      document.getElementById('editModal').remove();
+      loadItems();
+    } else toast(r.message || 'Update failed', 'error');
+  } catch { toast('Error', 'error'); }
+}
+
+// ── Drag & drop reorder ──────────────────────────────────────────
+function onDragStart(e, idx) {
+  dragSrc = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => document.querySelectorAll('.break-item')[idx].classList.add('dragging'), 0);
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const target = e.currentTarget;
+  document.querySelectorAll('.break-item').forEach(el => el.classList.remove('drag-over'));
+  target.classList.add('drag-over');
+}
+
+function onItemDrop(e, idx) {
+  e.preventDefault();
+  if (dragSrc === null || dragSrc === idx) return;
+  const moved = items.splice(dragSrc, 1)[0];
+  items.splice(idx, 0, moved);
+  renderList();
+  saveOrder();
+}
+
+function onDragEnd() {
+  document.querySelectorAll('.break-item').forEach(el => { el.classList.remove('dragging'); el.classList.remove('drag-over'); });
+  dragSrc = null;
+}
+
+async function saveOrder() {
+  const ids = items.map(i => i.id);
+  try {
+    await apiFetch('reorder_breaking', { method: 'POST', body: JSON.stringify({ ids }) });
+    toast('Order saved');
+  } catch { toast('Order saved locally', 'warning'); }
+}
+
+render();
+</script>
+</body>
+</html>

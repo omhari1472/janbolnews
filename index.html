@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="hi" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="जनबोल न्यूज़ — भारत की ताज़ा खबरें, राजनीति, खेल, मनोरंजन और अधिक। Janbol News – Latest Hindi & English news from India.">
+  <meta name="keywords" content="जनबोल न्यूज़, हिंदी न्यूज़, Hindi news, India news, राजनीति, खेल, मनोरंजन">
+  <meta name="robots" content="index, follow">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="जनबोल न्यूज़ | Janbol News">
+  <meta property="og:description" content="भारत की ताज़ा खबरें। आपकी आवाज़, आपकी खबर।">
+  <meta property="og:url" content="/">
+  <meta property="og:site_name" content="Janbol News">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>जनबोल न्यूज़ | Janbol News — आपकी आवाज़, आपकी खबर</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="canonical" href="/">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Janbol News",
+    "alternateName": "जनबोल न्यूज़",
+    "url": "https://janbolnews.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://janbolnews.com/search.html?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+</head>
+<body>
+
+<!-- Navbar injected by nav.js -->
+<div id="navbar-inject"></div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════ -->
+<main id="main-content" role="main">
+
+  <!-- Top Leaderboard Ad -->
+  <div class="container">
+    <div class="ad-slot ad-slot-leaderboard" style="margin-top:12px;" aria-label="Advertisement"></div>
+  </div>
+
+  <!-- ── HERO SECTION ── -->
+  <section class="hero-section" id="hero-section" aria-label="मुख्य समाचार">
+    <div id="hero-loading" class="container" style="padding:var(--space-lg) var(--space-md);">
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:1px;background:var(--gray-200);">
+        <div class="skeleton" style="height:420px;"></div>
+        <div style="display:flex;flex-direction:column;gap:1px;">
+          <div class="skeleton" style="height:209px;"></div>
+          <div class="skeleton" style="height:209px;"></div>
+        </div>
+      </div>
+    </div>
+    <div id="hero-content" class="hidden"></div>
+  </section>
+
+  <!-- ── TOP STORIES ── -->
+  <section class="news-section" aria-labelledby="top-stories-heading">
+    <div class="container">
+      <div class="section-heading">
+        <h2 class="section-title hi-text" id="top-stories-heading">
+          प्रमुख समाचार
+          <span class="en-sub">TOP STORIES</span>
+        </h2>
+        <a href="/category.html?cat=rashtriya" class="section-more hi-text">और पढ़ें →</a>
+      </div>
+      <div id="top-stories-grid" class="top-stories-grid" aria-live="polite">
+        <!-- Skeletons -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Mid Ad ── -->
+  <div class="container">
+    <div class="ad-slot ad-slot-banner" aria-label="Advertisement"></div>
+  </div>
+
+  <!-- ── CATEGORY SECTIONS (dynamic) ── -->
+  <div id="category-sections"></div>
+
+  <!-- ── E-PAPER TEASER ── -->
+  <div class="container">
+    <div class="epaper-teaser" id="epaper-teaser" aria-label="आज का ई-पेपर">
+      <div class="epaper-thumbnail-wrap">
+        <div class="epaper-thumb-placeholder">📰</div>
+      </div>
+      <div class="epaper-info">
+        <span class="epaper-badge">TODAY'S EDITION</span>
+        <div class="epaper-title hi-text">आज का अखबार</div>
+        <div class="epaper-date hi-text" id="epaper-date">लोड हो रहा है…</div>
+        <a href="/epaper.html" class="btn-epaper hi-text">📰 ई-पेपर पढ़ें</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Bottom Ad ── -->
+  <div class="container">
+    <div class="ad-slot ad-slot-leaderboard" aria-label="Advertisement"></div>
+  </div>
+
+</main>
+
+<!-- Footer injected by nav.js -->
+<div id="footer-inject"></div>
+
+<!-- Toast -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Scripts -->
+<script src="/js/config.js"></script>
+<script src="/js/news.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/ads.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  const newsAPI = new NewsAPI();
+
+  /* ── Hero Section ── */
+  async function loadHero() {
+    const loadingEl = document.getElementById('hero-loading');
+    const contentEl = document.getElementById('hero-content');
+    try {
+      const data = await newsAPI.fetchArticles({ featured: 1, limit: 3, page: 1 });
+      const articles = data.data?.items || data.data || [];
+      if (!articles.length) { loadingEl.style.display = 'none'; return; }
+
+      const [main, side1, side2] = articles;
+
+      const hero = document.createElement('div');
+      hero.className = 'hero-grid';
+
+      // Main hero
+      const mainDiv = document.createElement('a');
+      mainDiv.href = '/article.html?slug=' + encodeURIComponent(main.slug || '');
+      mainDiv.className = 'hero-main';
+      mainDiv.setAttribute('aria-label', getLocalText(main, 'title') || main.title);
+
+      const mainImgDiv = document.createElement('div');
+      mainImgDiv.className = 'hero-main-img';
+      if (main.featured_image || main.image) {
+        const img = document.createElement('img');
+        img.src = main.featured_image || main.image;
+        img.alt = getLocalText(main, 'title') || main.title || '';
+        img.loading = 'eager';
+        img.onerror = function() { this.src = JN_CONFIG.imgFallback; };
+        mainImgDiv.appendChild(img);
+      }
+
+      const overlay = document.createElement('div');
+      overlay.className = 'hero-main-overlay';
+      const catBadge = document.createElement('span');
+      catBadge.className = 'hero-main-category hi-text';
+      catBadge.textContent = getCategoryName(main.category_slug) || main.category_name || '';
+      const titleEl = document.createElement('h1');
+      titleEl.className = 'hero-main-title hi-text';
+      titleEl.textContent = getLocalText(main, 'title') || main.title || '';
+      const metaEl = document.createElement('div');
+      metaEl.className = 'hero-main-meta hi-text';
+      metaEl.textContent = formatDate(main.published_at || main.created_at) + (main.author_name ? ' · ' + main.author_name : '');
+
+      overlay.appendChild(catBadge);
+      overlay.appendChild(titleEl);
+      overlay.appendChild(metaEl);
+      mainDiv.appendChild(mainImgDiv);
+      mainDiv.appendChild(overlay);
+
+      // Side heroes
+      const sideDiv = document.createElement('div');
+      sideDiv.className = 'hero-side';
+
+      [side1, side2].filter(Boolean).forEach(function(art) {
+        const item = document.createElement('a');
+        item.href = '/article.html?slug=' + encodeURIComponent(art.slug || '');
+        item.className = 'hero-side-item';
+
+        const imgDiv = document.createElement('div');
+        imgDiv.className = 'hero-side-img';
+        if (art.featured_image || art.image) {
+          const img = document.createElement('img');
+          img.src = art.featured_image || art.image;
+          img.alt = getLocalText(art, 'title') || art.title || '';
+          img.loading = 'lazy';
+          img.onerror = function() { this.src = JN_CONFIG.imgFallback; };
+          imgDiv.appendChild(img);
+        }
+
+        const body = document.createElement('div');
+        body.className = 'hero-side-body';
+        const catEl = document.createElement('div');
+        catEl.className = 'hero-side-category hi-text';
+        catEl.textContent = getCategoryName(art.category_slug) || art.category_name || '';
+        const titleEl2 = document.createElement('h2');
+        titleEl2.className = 'hero-side-title hi-text truncate-3';
+        titleEl2.textContent = getLocalText(art, 'title') || art.title || '';
+        const metaEl2 = document.createElement('div');
+        metaEl2.className = 'hero-side-meta';
+        metaEl2.textContent = formatDate(art.published_at || art.created_at);
+
+        body.appendChild(catEl);
+        body.appendChild(titleEl2);
+        body.appendChild(metaEl2);
+        item.appendChild(imgDiv);
+        item.appendChild(body);
+        sideDiv.appendChild(item);
+      });
+
+      hero.appendChild(mainDiv);
+      hero.appendChild(sideDiv);
+
+      loadingEl.style.display = 'none';
+      contentEl.className = 'fade-in';
+      contentEl.appendChild(hero);
+    } catch (e) {
+      loadingEl.innerHTML = '<div class="container" style="padding:20px;color:var(--gray-500);font-family:var(--font-hindi);text-align:center;">समाचार लोड नहीं हो सके।</div>';
+    }
+  }
+
+  /* ── Top Stories ── */
+  async function loadTopStories() {
+    const grid = document.getElementById('top-stories-grid');
+    grid.appendChild(renderSkeleton(4, 200));
+
+    try {
+      const data = await newsAPI.fetchArticles({ limit: 8, page: 1 });
+      const articles = (data.data?.items || data.data || []).slice(0, 8);
+      grid.innerHTML = '';
+
+      articles.forEach(function(art, i) {
+        const card = renderArticleCard(art, { size: 'md' });
+        card.classList.add('fade-in-up', 'fade-in-up-delay-' + Math.min(i+1, 4));
+        grid.appendChild(card);
+      });
+    } catch (e) {
+      grid.innerHTML = '<p class="hi-text" style="color:var(--gray-500);padding:20px;">समाचार लोड नहीं हो सके।</p>';
+    }
+  }
+
+  /* ── Category Sections ── */
+  async function loadCategorySections() {
+    const container = document.getElementById('category-sections');
+    const featuredCats = ['politics', 'sports', 'entertainment', 'technology', 'business'];
+
+    for (let ci = 0; ci < featuredCats.length; ci++) {
+      const catSlug = featuredCats[ci];
+      const catName = getCategoryName(catSlug);
+
+      const section = document.createElement('section');
+      section.className = 'news-section';
+      section.setAttribute('aria-labelledby', 'cat-heading-' + catSlug);
+
+      const headingWrap = document.createElement('div');
+      headingWrap.className = 'container';
+
+      const heading = document.createElement('div');
+      heading.className = 'section-heading';
+      const titleEl = document.createElement('h2');
+      titleEl.className = 'section-title hi-text';
+      titleEl.id = 'cat-heading-' + catSlug;
+      titleEl.innerHTML = catName + '<span class="en-sub">' + catSlug.toUpperCase() + '</span>';
+      const moreLink = document.createElement('a');
+      moreLink.href = '/category.html?cat=' + catSlug;
+      moreLink.className = 'section-more hi-text';
+      moreLink.textContent = 'और पढ़ें →';
+      heading.appendChild(titleEl);
+      heading.appendChild(moreLink);
+
+      const gridWrap = document.createElement('div');
+      gridWrap.className = 'container';
+      const grid = document.createElement('div');
+      grid.className = 'category-grid';
+      grid.id = 'cat-grid-' + catSlug;
+      grid.appendChild(renderSkeleton(4));
+
+      headingWrap.appendChild(heading);
+      gridWrap.appendChild(grid);
+      section.appendChild(headingWrap);
+      section.appendChild(gridWrap);
+
+      // Ad every other section
+      if (ci % 2 === 1) {
+        const adDiv = document.createElement('div');
+        adDiv.className = 'container';
+        adDiv.innerHTML = '<div class="ad-slot ad-slot-banner" aria-label="Advertisement"></div>';
+        section.appendChild(adDiv);
+      }
+
+      container.appendChild(section);
+
+      // Fetch (async, no await here to load in parallel)
+      (function(slug, gridEl) {
+        newsAPI.fetchArticles({ category: slug, limit: 4, page: 1 }).then(function(data) {
+          const articles = (data.data?.items || data.data || []).slice(0, 4);
+          gridEl.innerHTML = '';
+          if (!articles.length) {
+            gridEl.innerHTML = '<p class="hi-text" style="color:var(--gray-400);padding:12px 0;">कोई समाचार नहीं मिला।</p>';
+            return;
+          }
+          articles.forEach(function(art, i) {
+            const card = renderArticleCard(art, { size: 'sm' });
+            card.classList.add('fade-in-up', 'fade-in-up-delay-' + Math.min(i+1, 4));
+            gridEl.appendChild(card);
+          });
+        }).catch(function() {
+          gridEl.innerHTML = '<p class="hi-text" style="color:var(--gray-400);padding:12px 0;">समाचार लोड नहीं हो सके।</p>';
+        });
+      })(catSlug, grid);
+    }
+  }
+
+  /* ── E-paper Teaser ── */
+  async function loadEpaperTeaser() {
+    const dateEl = document.getElementById('epaper-date');
+    const teaserEl = document.getElementById('epaper-teaser');
+    try {
+      const data = await newsAPI.fetchEpapers({ limit: 1 });
+      const papers = data.data?.items || data.data || [];
+      const today = new Date();
+      const lang = getLang();
+      const opts = { day: 'numeric', month: 'long', year: 'numeric' };
+      if (dateEl) dateEl.textContent = today.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', opts);
+
+      if (papers.length && teaserEl) {
+        const paper = papers[0];
+        const thumbWrap = teaserEl.querySelector('.epaper-thumbnail-wrap');
+        if (thumbWrap && (paper.thumbnail || paper.cover_image)) {
+          const img = document.createElement('img');
+          img.src = paper.thumbnail || paper.cover_image;
+          img.alt = 'ई-पेपर';
+          img.onerror = function() { this.outerHTML = '<div class="epaper-thumb-placeholder">📰</div>'; };
+          thumbWrap.innerHTML = '';
+          thumbWrap.appendChild(img);
+        }
+
+        const titleEl = teaserEl.querySelector('.epaper-title');
+        if (titleEl && paper.title) titleEl.textContent = paper.title;
+      }
+    } catch (e) {
+      const today = new Date();
+      const lang = getLang();
+      if (dateEl) dateEl.textContent = today.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+  }
+
+  /* ── Init ── */
+  document.addEventListener('DOMContentLoaded', function() {
+    loadHero();
+    loadTopStories();
+    loadCategorySections();
+    loadEpaperTeaser();
+  });
+
+})();
+</script>
+</body>
+</html>

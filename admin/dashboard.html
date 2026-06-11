@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — Janbolnews Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.stat-card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:20px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 3px rgba(0,0,0,.03);transition:.15s}
+.stat-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07);transform:translateY(-2px)}
+.stat-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:17px}
+.si-red{background:rgba(196,30,58,.1);color:#C41E3A}
+.si-green{background:#dcfce7;color:#16a34a}
+.si-blue{background:#dbeafe;color:#1d4ed8}
+.si-amber{background:#fef3c7;color:#92400e}
+.stat-val{font-weight:800;font-size:1.65rem;color:#1a1a1a;line-height:1;font-family:'Inter',sans-serif}
+.stat-label{font-size:.73rem;color:#888;margin-top:3px;font-weight:500}
+.stat-delta{font-size:.7rem;font-weight:700;color:#16a34a;margin-top:2px}
+.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+.quick-card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:16px 18px;display:flex;align-items:center;gap:12px;text-decoration:none;transition:.15s;cursor:pointer}
+.quick-card:hover{border-color:#C41E3A;box-shadow:0 4px 16px rgba(196,30,58,.1);transform:translateY(-2px)}
+.quick-icon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.quick-label{font-weight:700;font-size:.86rem;color:#1a1a1a}
+.quick-sub{font-size:.73rem;color:#888;margin-top:1px}
+.two-col{display:grid;grid-template-columns:1.6fr 1fr;gap:16px}
+.art-row{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid #f3f3f3;transition:.1s}
+.art-row:last-child{border-bottom:none}
+.art-row:hover{background:#fdf6f7}
+.art-thumb{width:46px;height:34px;border-radius:5px;object-fit:cover;background:#f0f0f0;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:.75rem;overflow:hidden}
+.art-thumb img{width:100%;height:100%;object-fit:cover}
+.art-title{font-weight:600;font-size:.84rem;color:#1a1a1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;font-family:'Noto Sans Devanagari','Inter',sans-serif}
+.art-meta{font-size:.72rem;color:#999;margin-top:2px}
+.art-actions{margin-left:auto;display:flex;gap:6px}
+.break-item{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid #f3f3f3}
+.break-item:last-child{border-bottom:none}
+.break-dot{width:8px;height:8px;border-radius:50%;background:#C41E3A;flex-shrink:0;box-shadow:0 0 6px rgba(196,30,58,.5)}
+.break-dot.inactive{background:#ddd;box-shadow:none}
+.break-text{font-size:.83rem;color:#333;font-family:'Noto Sans Devanagari','Inter',sans-serif;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.break-badge{font-size:.68rem;font-weight:700;color:#C41E3A;background:rgba(196,30,58,.08);padding:2px 7px;border-radius:20px;flex-shrink:0}
+.loading-row{padding:32px;text-align:center;color:#aaa;font-size:.85rem}
+@media(max-width:1100px){.stat-grid{grid-template-columns:1fr 1fr}.two-col{grid-template-columns:1fr}}
+@media(max-width:700px){.quick-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script src="shared.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" defer></script>
+<script>
+checkAuth();
+injectSidebar('dashboard.html');
+document.getElementById('pageTitle').textContent = 'Dashboard';
+
+async function loadDashboard() {
+  const pb = document.getElementById('pageBody');
+
+  pb.innerHTML = `
+  <div class="quick-grid">
+    <a href="article-edit.html" class="quick-card"><div class="quick-icon si-red"><i class="fa-solid fa-plus"></i></div><div><div class="quick-label">New Article</div><div class="quick-sub">Write & publish</div></div></a>
+    <a href="breaking.html" class="quick-card"><div class="quick-icon si-amber"><i class="fa-solid fa-bolt"></i></div><div><div class="quick-label">Breaking News</div><div class="quick-sub">Manage ticker</div></div></a>
+    <a href="epaper.html" class="quick-card"><div class="quick-icon si-blue"><i class="fa-solid fa-file-pdf"></i></div><div><div class="quick-label">Upload E-Paper</div><div class="quick-sub">Today's edition</div></div></a>
+  </div>
+
+  <div class="stat-grid" id="statGrid">
+    ${[1,2,3,4].map(()=>`<div class="stat-card"><div class="stat-icon si-red"><i class="fa-solid fa-spinner fa-spin"></i></div><div><div class="stat-val">—</div><div class="stat-label">Loading…</div></div></div>`).join('')}
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-head">
+        <h3><i class="fa-solid fa-newspaper" style="color:#C41E3A;"></i> Recent Articles</h3>
+        <a href="articles.html" class="btn btn-outline btn-sm">View All →</a>
+      </div>
+      <div class="card-body" style="padding:0" id="recentArticles"><div class="loading-row"><i class="fa-solid fa-spinner fa-spin"></i> Loading…</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <h3><i class="fa-solid fa-bolt" style="color:#C41E3A;"></i> Breaking News</h3>
+        <a href="breaking.html" class="btn btn-outline btn-sm">Manage →</a>
+      </div>
+      <div class="card-body" style="padding:0" id="recentBreaking"><div class="loading-row"><i class="fa-solid fa-spinner fa-spin"></i> Loading…</div></div>
+    </div>
+  </div>`;
+
+  try {
+    const [statsData, articlesData, breakingData] = await Promise.all([
+      apiFetch('stats'),
+      apiFetch('articles', {}, '&limit=10&page=1'),
+      apiFetch('breaking')
+    ]);
+
+    // Stats
+    const s = statsData.data || {};
+    document.getElementById('statGrid').innerHTML = `
+      <div class="stat-card"><div class="stat-icon si-red"><i class="fa-solid fa-newspaper"></i></div><div><div class="stat-val">${s.today_articles ?? 0}</div><div class="stat-label">Today's Articles</div><div class="stat-delta">↑ Published today</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-green"><i class="fa-solid fa-layer-group"></i></div><div><div class="stat-val">${(s.total_articles ?? 0).toLocaleString('en-IN')}</div><div class="stat-label">Total Articles</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-blue"><i class="fa-solid fa-eye"></i></div><div><div class="stat-val">${(s.total_views ?? 0).toLocaleString('en-IN')}</div><div class="stat-label">Total Views</div></div></div>
+      <div class="stat-card"><div class="stat-icon si-amber"><i class="fa-solid fa-bolt"></i></div><div><div class="stat-val">${s.breaking_count ?? 0}</div><div class="stat-label">Breaking News</div></div></div>`;
+
+    // Recent articles
+    const articles = articlesData.data?.items || articlesData.data?.articles || [];
+    const artEl = document.getElementById('recentArticles');
+    if (!articles.length) {
+      artEl.innerHTML = '<div class="loading-row" style="color:#bbb"><i class="fa-solid fa-file-circle-plus" style="font-size:1.5rem;display:block;margin-bottom:8px;"></i>No articles yet. <a href="article-edit.html" style="color:#C41E3A;font-weight:700;">Create one →</a></div>';
+    } else {
+      artEl.innerHTML = articles.map(a => `
+        <div class="art-row">
+          <div class="art-thumb">${a.featured_image_url ? `<img src="${a.featured_image_url}" alt="">` : '<i class="fa-solid fa-image"></i>'}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="art-title">${a.title_hi || a.title_en || 'Untitled'}</div>
+            <div class="art-meta">${catBadge(a.category_slug)} &nbsp;${statusBadge(a.status)} &nbsp;${timeAgo(a.created_at)}</div>
+          </div>
+          <div class="art-actions">
+            <a href="article-edit.html?id=${a.id}" class="btn btn-outline btn-sm"><i class="fa-solid fa-pen"></i></a>
+          </div>
+        </div>`).join('');
+    }
+
+    // Breaking news
+    const breaking = breakingData.data?.breaking || breakingData.data?.items || [];
+    const brEl = document.getElementById('recentBreaking');
+    if (!breaking.length) {
+      brEl.innerHTML = '<div class="loading-row" style="color:#bbb"><i class="fa-solid fa-bolt" style="font-size:1.5rem;display:block;margin-bottom:8px;"></i>No breaking news. <a href="breaking.html" style="color:#C41E3A;font-weight:700;">Add one →</a></div>';
+    } else {
+      brEl.innerHTML = breaking.slice(0, 8).map(b => `
+        <div class="break-item">
+          <div class="break-dot ${b.is_active ? '' : 'inactive'}"></div>
+          <div class="break-text">${b.text_hi || b.text_en || '—'}</div>
+          <span class="break-badge">${b.is_active ? 'LIVE' : 'OFF'}</span>
+        </div>`).join('');
+    }
+  } catch (e) {
+    console.error('Dashboard error:', e);
+    document.getElementById('statGrid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:20px;color:#aaa;font-size:.85rem;"><i class="fa-solid fa-triangle-exclamation" style="color:#C41E3A;margin-right:6px;"></i>Could not load stats. Check API connection.</div>`;
+  }
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

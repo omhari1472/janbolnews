@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="hi" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="index, follow">
+  <title id="page-title">श्रेणी | जनबोल न्यूज़</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="navbar-inject"></div>
+
+<main id="main-content" role="main">
+
+  <!-- Category Header (dark band) -->
+  <div class="category-page-header" id="cat-page-header">
+    <div class="container">
+      <div id="cat-title-wrap">
+        <h1 class="category-page-title hi-text" id="cat-page-title">
+          <span id="cat-name-text">श्रेणी</span>
+          <span class="category-count" id="cat-count"></span>
+        </h1>
+      </div>
+
+      <!-- Sub-category tabs (shown if parent has sub-cats) -->
+      <div class="subcategory-tabs" id="subcategory-tabs" style="display:none;"></div>
+    </div>
+  </div>
+
+  <div class="container" style="margin-top:var(--space-md);">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" style="padding:10px 0;" aria-label="Breadcrumb">
+      <a href="/index.html" class="hi-text">होम</a>
+      <span class="sep">›</span>
+      <span class="current hi-text" id="breadcrumb-cat">श्रेणी</span>
+    </nav>
+
+    <div class="page-layout" style="padding:0;">
+
+      <!-- Main -->
+      <div class="main-content">
+
+        <!-- Filter: Sort by -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-md);flex-wrap:wrap;gap:8px;">
+          <div class="filter-chips" id="sort-chips">
+            <button class="filter-chip hi-text active" data-sort="latest">नवीनतम</button>
+            <button class="filter-chip hi-text" data-sort="popular">लोकप्रिय</button>
+            <button class="filter-chip hi-text" data-sort="trending">ट्रेंडिंग</button>
+          </div>
+          <span id="results-count" class="hi-text" style="font-size:13px;color:var(--gray-500);"></span>
+        </div>
+
+        <!-- Articles Grid -->
+        <div class="cat-articles-grid" id="cat-articles-grid" aria-live="polite" aria-label="लेखों की सूची">
+          <!-- Skeletons shown while loading -->
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination" role="navigation" aria-label="पृष्ठ नेविगेशन"></div>
+
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="sidebar" aria-label="साइडबार">
+
+        <!-- Trending -->
+        <div class="sidebar-widget">
+          <div class="widget-header">
+            <span class="hi-text">🔥 ट्रेंडिंग</span>
+            <span class="en">TRENDING</span>
+          </div>
+          <div class="widget-body" id="trending-list">
+            <div style="padding:8px 0;">
+              <div class="skeleton skeleton-line w-80" style="height:12px;margin-bottom:6px;"></div>
+              <div class="skeleton skeleton-line w-60" style="height:12px;margin-bottom:12px;"></div>
+              <div class="skeleton skeleton-line w-80" style="height:12px;margin-bottom:6px;"></div>
+              <div class="skeleton skeleton-line w-60" style="height:12px;margin-bottom:12px;"></div>
+              <div class="skeleton skeleton-line w-80" style="height:12px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ad -->
+        <div class="ad-slot ad-slot-square" style="margin-top:var(--space-md);" aria-label="Advertisement"></div>
+
+        <!-- Other Categories -->
+        <div class="sidebar-widget" style="margin-top:var(--space-md);">
+          <div class="widget-header">
+            <span class="hi-text">📁 अन्य श्रेणियाँ</span>
+          </div>
+          <div class="widget-body" id="other-cats"></div>
+        </div>
+
+        <!-- Ad 2 -->
+        <div class="ad-slot ad-slot-rect" style="margin-top:var(--space-md);" aria-label="Advertisement"></div>
+
+      </aside>
+    </div>
+  </div>
+
+</main>
+
+<div id="footer-inject"></div>
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script src="/js/news.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/ads.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  const newsAPI = new NewsAPI();
+
+  /* ── State ── */
+  let currentPage  = 1;
+  let totalPages   = 1;
+  let totalArticles = 0;
+  let currentSort  = 'latest';
+  let currentCat   = '';
+  let currentSubCat = '';
+  const LIMIT = (window.JN_CONFIG && window.JN_CONFIG.articlesPerPage) || 12;
+
+  /* ── Read URL params ── */
+  function readParams() {
+    const params = new URLSearchParams(window.location.search);
+    currentCat    = params.get('cat')     || '';
+    currentSubCat = params.get('subcat')  || '';
+    currentPage   = parseInt(params.get('page') || '1', 10) || 1;
+    currentSort   = params.get('sort')   || 'latest';
+  }
+
+  /* ── Update URL without reload ── */
+  function updateURL() {
+    const params = new URLSearchParams();
+    if (currentCat)    params.set('cat', currentCat);
+    if (currentSubCat) params.set('subcat', currentSubCat);
+    if (currentPage > 1) params.set('page', currentPage);
+    if (currentSort !== 'latest') params.set('sort', currentSort);
+    const newURL = window.location.pathname + '?' + params.toString();
+    window.history.replaceState({}, '', newURL);
+  }
+
+  /* ── Set page metadata ── */
+  function setPageMeta(catName, count) {
+    const title = catName + ' | जनबोल न्यूज़';
+    document.title = title;
+    document.getElementById('page-title').textContent = title;
+    document.getElementById('cat-name-text').textContent = catName;
+    document.getElementById('breadcrumb-cat').textContent = catName;
+    if (count !== undefined) {
+      document.getElementById('cat-count').textContent = '(' + count + ' लेख)';
+    }
+  }
+
+  /* ── Load articles ── */
+  async function loadArticles() {
+    const grid = document.getElementById('cat-articles-grid');
+    grid.innerHTML = '';
+    grid.appendChild(renderSkeleton(6, 200));
+
+    const params = {
+      category: currentSubCat || currentCat,
+      page: currentPage,
+      limit: LIMIT,
+      sort: currentSort,
+    };
+
+    try {
+      const data = await newsAPI.fetchArticles(params);
+      const articles  = data.data?.items || data.data || [];
+      const total     = data.total || data.count || articles.length;
+      totalArticles   = total;
+      totalPages      = data.last_page || data.pages || Math.ceil(total / LIMIT) || 1;
+
+      const catName = getCategoryName(currentCat);
+      setPageMeta(catName, total);
+
+      // Results count
+      const countEl = document.getElementById('results-count');
+      if (countEl) {
+        const lang = getLang();
+        countEl.textContent = lang === 'hi'
+          ? `${total} लेख मिले (पृष्ठ ${currentPage}/${totalPages})`
+          : `${total} articles (Page ${currentPage}/${totalPages})`;
+      }
+
+      grid.innerHTML = '';
+      if (!articles.length) {
+        grid.innerHTML = `
+          <div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
+            <div style="font-size:48px;margin-bottom:12px;">📰</div>
+            <p class="hi-text" style="font-size:18px;color:var(--gray-500);">इस श्रेणी में कोई लेख नहीं मिला।</p>
+          </div>`;
+        buildPagination();
+        return;
+      }
+
+      articles.forEach(function(art, i) {
+        const card = renderArticleCard(art, { size: 'md' });
+        card.classList.add('fade-in-up', 'fade-in-up-delay-' + Math.min(i + 1, 4));
+        grid.appendChild(card);
+      });
+
+      buildPagination();
+      updateURL();
+
+      // Scroll to top of grid
+      grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (e) {
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:40px;">
+          <p class="hi-text" style="color:var(--gray-500);">समाचार लोड नहीं हो सके।</p>
+          <button onclick="loadArticles()" class="btn-primary hi-text" style="margin-top:16px;">पुनः प्रयास</button>
+        </div>`;
+    }
+  }
+
+  /* ── Pagination ── */
+  function buildPagination() {
+    const container = document.getElementById('pagination');
+    container.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    function makeBtn(label, page, isActive, isDisabled) {
+      const btn = document.createElement('button');
+      btn.className = 'page-btn' + (isActive ? ' active' : '');
+      btn.textContent = label;
+      btn.disabled = isDisabled || false;
+      if (!isDisabled) {
+        btn.addEventListener('click', function() {
+          currentPage = page;
+          loadArticles();
+        });
+      }
+      return btn;
+    }
+
+    // Prev
+    container.appendChild(makeBtn('‹ पिछला', currentPage - 1, false, currentPage <= 1));
+
+    // Page numbers
+    const range = getPageRange(currentPage, totalPages);
+    range.forEach(function(p) {
+      if (p === '…') {
+        const ellipsis = document.createElement('span');
+        ellipsis.className = 'page-btn';
+        ellipsis.style.cursor = 'default';
+        ellipsis.textContent = '…';
+        container.appendChild(ellipsis);
+      } else {
+        container.appendChild(makeBtn(p, p, p === currentPage, false));
+      }
+    });
+
+    // Next
+    container.appendChild(makeBtn('अगला ›', currentPage + 1, false, currentPage >= totalPages));
+  }
+
+  function getPageRange(current, total) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    if (current <= 4) return [1, 2, 3, 4, 5, '…', total];
+    if (current >= total - 3) return [1, '…', total-4, total-3, total-2, total-1, total];
+    return [1, '…', current-1, current, current+1, '…', total];
+  }
+
+  /* ── Sort chips ── */
+  function initSortChips() {
+    const chips = document.querySelectorAll('#sort-chips .filter-chip');
+    chips.forEach(function(chip) {
+      chip.classList.toggle('active', chip.dataset.sort === currentSort);
+      chip.addEventListener('click', function() {
+        chips.forEach(function(c) { c.classList.remove('active'); });
+        chip.classList.add('active');
+        currentSort = chip.dataset.sort;
+        currentPage = 1;
+        loadArticles();
+      });
+    });
+  }
+
+  /* ── Sub-category tabs ── */
+  async function loadSubCats() {
+    const tabsEl = document.getElementById('subcategory-tabs');
+    if (!tabsEl) return;
+
+    // Sub-categories map
+    const subCatMap = {
+      khel:        [{ slug: '', hi: 'सभी', en: 'All' }, { slug: 'cricket', hi: 'क्रिकेट', en: 'Cricket' }, { slug: 'football', hi: 'फुटबॉल', en: 'Football' }, { slug: 'kabaddi', hi: 'कबड्डी', en: 'Kabaddi' }],
+      manoranjan:  [{ slug: '', hi: 'सभी', en: 'All' }, { slug: 'bollywood', hi: 'बॉलीवुड', en: 'Bollywood' }, { slug: 'ott', hi: 'OTT', en: 'OTT' }, { slug: 'music', hi: 'संगीत', en: 'Music' }],
+      technology:  [{ slug: '', hi: 'सभी', en: 'All' }, { slug: 'mobile', hi: 'मोबाइल', en: 'Mobile' }, { slug: 'ai', hi: 'AI', en: 'AI' }, { slug: 'internet', hi: 'इंटरनेट', en: 'Internet' }],
+      rajniti:     [{ slug: '', hi: 'सभी', en: 'All' }, { slug: 'lok-sabha', hi: 'लोकसभा', en: 'Lok Sabha' }, { slug: 'vidhan-sabha', hi: 'विधानसभा', en: 'Vidhan Sabha' }],
+    };
+
+    const subCats = subCatMap[currentCat];
+    if (!subCats) return;
+
+    tabsEl.style.display = 'flex';
+
+    subCats.forEach(function(sub) {
+      const btn = document.createElement('button');
+      btn.className = 'subcategory-tab hi-text' + (sub.slug === currentSubCat ? ' active' : '');
+      btn.textContent = getLang() === 'hi' ? sub.hi : sub.en;
+      btn.addEventListener('click', function() {
+        tabsEl.querySelectorAll('.subcategory-tab').forEach(function(t) { t.classList.remove('active'); });
+        btn.classList.add('active');
+        currentSubCat = sub.slug;
+        currentPage = 1;
+        loadArticles();
+      });
+      tabsEl.appendChild(btn);
+    });
+  }
+
+  /* ── Trending Sidebar ── */
+  async function loadTrending() {
+    const list = document.getElementById('trending-list');
+    if (!list) return;
+    try {
+      const data = await newsAPI.fetchArticles({ limit: 7, page: 1, sort: 'views' });
+      const articles = data.data?.items || data.data || [];
+      list.innerHTML = '';
+      articles.forEach(function(art, i) {
+        list.appendChild(renderArticleListItem(art, i));
+      });
+    } catch (e) {}
+  }
+
+  /* ── Other Categories Sidebar ── */
+  function loadOtherCats() {
+    const el = document.getElementById('other-cats');
+    if (!el || !window.JN_CONFIG) return;
+    el.innerHTML = '';
+    window.JN_CONFIG.categories.filter(c => c.slug !== currentCat).forEach(function(cat) {
+      const a = document.createElement('a');
+      a.href = '/category.html?cat=' + cat.slug;
+      a.className = 'article-list-item hi-text';
+      a.style.cssText = 'padding:8px 0;border-bottom:1px solid var(--gray-100);display:flex;justify-content:space-between;align-items:center;';
+      a.innerHTML = `<span>${getLang() === 'hi' ? cat.hi : cat.en}</span><span style="color:var(--red-primary)">›</span>`;
+      el.appendChild(a);
+    });
+  }
+
+  /* ── Init ── */
+  document.addEventListener('DOMContentLoaded', function() {
+    readParams();
+
+    if (!currentCat) {
+      // No category: show all news
+      document.getElementById('cat-name-text').textContent = getLang() === 'hi' ? 'सभी समाचार' : 'All News';
+    }
+
+    loadSubCats();
+    initSortChips();
+    loadArticles();
+    loadTrending();
+    loadOtherCats();
+  });
+
+  // Expose for onclick
+  window.loadArticles = loadArticles;
+
+})();
+</script>
+</body>
+</html>

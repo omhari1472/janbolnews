@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="hi" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="जनबोल न्यूज़ ई-पेपर — आज का अखबार ऑनलाइन पढ़ें। Janbol News E-Paper viewer.">
+  <title>ई-पेपर | जनबोल न्यूज़</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="navbar-inject"></div>
+
+<main id="main-content" role="main" class="epaper-page">
+
+  <!-- Page Header -->
+  <div class="category-page-header">
+    <div class="container">
+      <h1 class="category-page-title hi-text">📰 ई-पेपर</h1>
+      <p class="hi-text" style="color:var(--gray-400);font-size:14px;margin-top:6px;">आज का अखबार ऑनलाइन पढ़ें — E-Paper Archive</p>
+    </div>
+  </div>
+
+  <div class="container" style="padding-top:var(--space-lg);">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb" style="padding:0 0 var(--space-md);" aria-label="Breadcrumb">
+      <a href="/index.html" class="hi-text">होम</a>
+      <span class="sep">›</span>
+      <span class="current hi-text">ई-पेपर</span>
+    </nav>
+
+    <!-- ── PDF Viewer (shown when paper selected) ── -->
+    <div id="pdf-viewer-section" style="display:none;margin-bottom:var(--space-xl);">
+      <div class="pdf-viewer-wrap" aria-label="PDF व्यूअर">
+        <div class="pdf-viewer-toolbar" role="toolbar" aria-label="PDF नियंत्रण">
+          <button class="pdf-toolbar-btn" id="btn-prev-page" title="पिछला पृष्ठ" aria-label="पिछला पृष्ठ" disabled>‹ पिछला</button>
+          <span class="pdf-page-info hi-text" id="pdf-page-info">पृष्ठ — / —</span>
+          <button class="pdf-toolbar-btn" id="btn-next-page" title="अगला पृष्ठ" aria-label="अगला पृष्ठ" disabled>अगला ›</button>
+
+          <div class="pdf-zoom-btns">
+            <button class="pdf-toolbar-btn" id="btn-zoom-out" title="छोटा करें" aria-label="ज़ूम आउट">−</button>
+            <button class="pdf-toolbar-btn" id="btn-zoom-in"  title="बड़ा करें" aria-label="ज़ूम इन">+</button>
+            <button class="pdf-toolbar-btn" id="btn-zoom-fit" title="फ़िट करें" aria-label="स्क्रीन पर फ़िट करें">⊡</button>
+          </div>
+
+          <!-- Two-page spread toggle (desktop only) -->
+          <button class="pdf-toolbar-btn" id="btn-spread-toggle" title="दो-पृष्ठ दृश्य" aria-label="दो-पृष्ठ दृश्य" style="margin-left:auto;">⧎ दो पृष्ठ</button>
+
+          <a class="pdf-toolbar-btn pdf-download-btn" id="pdf-download-btn" download title="PDF डाउनलोड करें" aria-label="PDF डाउनलोड करें">⬇ डाउनलोड</a>
+        </div>
+
+        <div class="pdf-canvas-area" id="pdf-canvas-area">
+          <div class="pdf-loading" id="pdf-loading">
+            <div class="pdf-loading-spinner"></div>
+            <span class="hi-text">ई-पेपर लोड हो रहा है…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Archive Section ── -->
+    <div class="section-heading">
+      <h2 class="section-title hi-text">
+        पुराने अंक
+        <span class="en-sub">ARCHIVE</span>
+      </h2>
+    </div>
+
+    <!-- Edition Filters -->
+    <div class="edition-filters" id="edition-filters" role="group" aria-label="संस्करण चुनें">
+      <button class="edition-btn hi-text active" data-edition="">सभी संस्करण</button>
+      <!-- More edition buttons added by JS -->
+    </div>
+
+    <!-- Archive Grid -->
+    <div class="epaper-archive-grid" id="archive-grid" aria-label="ई-पेपर आर्काइव" aria-live="polite">
+      <!-- Skeletons -->
+    </div>
+
+    <!-- Load More -->
+    <div style="text-align:center;margin:var(--space-xl) 0;">
+      <button id="load-more-btn" class="btn-primary hi-text" style="display:none;">और पुराने अंक देखें</button>
+    </div>
+
+  </div>
+</main>
+
+<div id="footer-inject"></div>
+<div class="toast-container" id="toast-container"></div>
+
+<!-- PDF.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<script src="/js/config.js"></script>
+<script src="/js/news.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/ads.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  const newsAPI = new NewsAPI();
+
+  /* ── State ── */
+  let pdfDoc      = null;
+  let currentPage = 1;
+  let totalPages  = 0;
+  let scale       = 1.0;
+  let spreadMode  = window.innerWidth >= 1024;
+  let rendering   = false;
+  let currentPdfUrl = '';
+
+  let archivePage    = 1;
+  let archiveTotal   = 0;
+  let currentEdition = '';
+  const ARCHIVE_LIMIT = 12;
+
+  // PDF.js worker
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  /* ════════════════════════════
+     PDF VIEWER
+  ════════════════════════════ */
+
+  async function openPdf(url, title) {
+    if (!window.pdfjsLib) {
+      showToast('PDF व्यूअर लोड नहीं हो सका। कृपया डाउनलोड करें।', 'error');
+      return;
+    }
+
+    currentPdfUrl = url;
+    const viewerSection = document.getElementById('pdf-viewer-section');
+    viewerSection.style.display = 'block';
+    viewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    const canvasArea  = document.getElementById('pdf-canvas-area');
+    const loadingEl   = document.getElementById('pdf-loading');
+    canvasArea.innerHTML = '';
+    canvasArea.appendChild(loadingEl);
+    loadingEl.style.display = 'flex';
+
+    // Download link
+    const downloadBtn = document.getElementById('pdf-download-btn');
+    downloadBtn.href = url;
+    downloadBtn.setAttribute('download', (title || 'epaper') + '.pdf');
+
+    try {
+      const loadingTask = pdfjsLib.getDocument(url);
+      pdfDoc = await loadingTask.promise;
+      totalPages  = pdfDoc.numPages;
+      currentPage = 1;
+      scale       = calcFitScale();
+
+      loadingEl.style.display = 'none';
+      updatePageControls();
+      await renderCurrentPages();
+    } catch (e) {
+      loadingEl.innerHTML = `
+        <div style="text-align:center;">
+          <p class="hi-text" style="color:rgba(255,255,255,0.7);margin-bottom:16px;">PDF लोड नहीं हो सका।</p>
+          <a href="${url}" download class="pdf-toolbar-btn pdf-download-btn">⬇ डाउनलोड करें</a>
+        </div>`;
+    }
+  }
+
+  function calcFitScale() {
+    const area = document.getElementById('pdf-canvas-area');
+    const availWidth = (area.clientWidth || 800) - 32;
+    // Approximate A3 newspaper: 842 x 1191 pt
+    return Math.min(1.5, availWidth / 842);
+  }
+
+  async function renderPage(pageNum) {
+    if (!pdfDoc) return null;
+    const page = await pdfDoc.getPage(pageNum);
+    const viewport = page.getViewport({ scale });
+
+    const canvas = document.createElement('canvas');
+    canvas.width  = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'pdf-canvas-wrap';
+    wrapper.setAttribute('aria-label', 'पृष्ठ ' + pageNum);
+    wrapper.appendChild(canvas);
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    return wrapper;
+  }
+
+  async function renderCurrentPages() {
+    if (rendering || !pdfDoc) return;
+    rendering = true;
+
+    const area = document.getElementById('pdf-canvas-area');
+    area.innerHTML = '';
+
+    const pagesToRender = spreadMode && currentPage < totalPages
+      ? [currentPage, currentPage + 1]
+      : [currentPage];
+
+    for (const pn of pagesToRender) {
+      const wrapper = await renderPage(pn);
+      if (wrapper) area.appendChild(wrapper);
+    }
+
+    rendering = false;
+    updatePageControls();
+  }
+
+  function updatePageControls() {
+    const info    = document.getElementById('pdf-page-info');
+    const prevBtn = document.getElementById('btn-prev-page');
+    const nextBtn = document.getElementById('btn-next-page');
+
+    if (info) {
+      const lang = getLang();
+      info.textContent = lang === 'hi'
+        ? `पृष्ठ ${currentPage} / ${totalPages}`
+        : `Page ${currentPage} of ${totalPages}`;
+    }
+    if (prevBtn) prevBtn.disabled = currentPage <= 1;
+    if (nextBtn) nextBtn.disabled = spreadMode
+      ? currentPage + 1 >= totalPages
+      : currentPage >= totalPages;
+  }
+
+  function prevPage() {
+    if (!pdfDoc || currentPage <= 1) return;
+    currentPage = spreadMode ? Math.max(1, currentPage - 2) : currentPage - 1;
+    renderCurrentPages();
+  }
+
+  function nextPage() {
+    if (!pdfDoc || currentPage >= totalPages) return;
+    currentPage = spreadMode ? Math.min(totalPages, currentPage + 2) : currentPage + 1;
+    renderCurrentPages();
+  }
+
+  function zoomIn() {
+    scale = Math.min(3.0, scale + 0.2);
+    renderCurrentPages();
+  }
+
+  function zoomOut() {
+    scale = Math.max(0.3, scale - 0.2);
+    renderCurrentPages();
+  }
+
+  function zoomFit() {
+    scale = calcFitScale();
+    renderCurrentPages();
+  }
+
+  function toggleSpread() {
+    spreadMode = !spreadMode;
+    const btn = document.getElementById('btn-spread-toggle');
+    if (btn) btn.style.background = spreadMode ? 'rgba(196,30,58,0.3)' : '';
+    // Align to even page for spread
+    if (spreadMode && currentPage % 2 === 0 && currentPage > 1) currentPage--;
+    renderCurrentPages();
+  }
+
+  /* ── Wire PDF controls ── */
+  function initPdfControls() {
+    document.getElementById('btn-prev-page').addEventListener('click', prevPage);
+    document.getElementById('btn-next-page').addEventListener('click', nextPage);
+    document.getElementById('btn-zoom-in').addEventListener('click', zoomIn);
+    document.getElementById('btn-zoom-out').addEventListener('click', zoomOut);
+    document.getElementById('btn-zoom-fit').addEventListener('click', zoomFit);
+    document.getElementById('btn-spread-toggle').addEventListener('click', toggleSpread);
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+      const viewer = document.getElementById('pdf-viewer-section');
+      if (!viewer || viewer.style.display === 'none') return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextPage();
+      if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prevPage();
+    });
+  }
+
+  /* ════════════════════════════
+     ARCHIVE LIST
+  ════════════════════════════ */
+
+  async function loadArchive(reset) {
+    if (reset) {
+      archivePage = 1;
+      document.getElementById('archive-grid').innerHTML = '';
+    }
+
+    const grid = document.getElementById('archive-grid');
+    if (archivePage === 1) {
+      grid.appendChild(renderSkeleton(6, 220));
+    }
+
+    try {
+      const data = await newsAPI.fetchEpapers({
+        edition: currentEdition,
+        page: archivePage,
+        limit: ARCHIVE_LIMIT,
+      });
+      const papers = data.data?.items || data.data || [];
+      archiveTotal = data.total || data.count || papers.length;
+      const totalArchivePages = Math.ceil(archiveTotal / ARCHIVE_LIMIT);
+
+      if (archivePage === 1) grid.innerHTML = '';
+
+      if (!papers.length && archivePage === 1) {
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;"><p class="hi-text" style="color:var(--gray-400);">कोई ई-पेपर उपलब्ध नहीं है।</p></div>`;
+        return;
+      }
+
+      papers.forEach(function(paper, i) {
+        const item = document.createElement('div');
+        item.className = 'epaper-archive-item fade-in';
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('aria-label', paper.title || paper.date || 'ई-पेपर');
+
+        const thumbSrc = paper.thumbnail || paper.cover_image || '';
+
+        let thumbEl;
+        if (thumbSrc) {
+          thumbEl = document.createElement('img');
+          thumbEl.className = 'epaper-archive-thumb';
+          thumbEl.src = thumbSrc;
+          thumbEl.alt = paper.title || paper.date || 'ई-पेपर';
+          thumbEl.loading = 'lazy';
+          thumbEl.onerror = function() {
+            const ph = document.createElement('div');
+            ph.className = 'epaper-archive-thumb-placeholder';
+            ph.textContent = '📰';
+            this.replaceWith(ph);
+          };
+        } else {
+          thumbEl = document.createElement('div');
+          thumbEl.className = 'epaper-archive-thumb-placeholder';
+          thumbEl.textContent = '📰';
+        }
+
+        const dateEl = document.createElement('div');
+        dateEl.className = 'epaper-archive-date hi-text';
+        dateEl.textContent = paper.date
+          ? new Date(paper.date).toLocaleDateString(getLang() === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+          : (paper.title || 'अंक');
+
+        const editionEl = document.createElement('div');
+        editionEl.className = 'epaper-archive-edition hi-text';
+        editionEl.textContent = paper.edition_name || getCityName(paper.edition) || '';
+
+        item.appendChild(thumbEl);
+        item.appendChild(dateEl);
+        item.appendChild(editionEl);
+
+        // Click → open PDF
+        function openThisPaper() {
+          document.querySelectorAll('.epaper-archive-item').forEach(function(el) {
+            el.classList.remove('active');
+          });
+          item.classList.add('active');
+          const pdfUrl = paper.pdf_url || paper.file_url || paper.url;
+          if (pdfUrl) {
+            openPdf(pdfUrl, paper.title || paper.date || 'epaper');
+          } else {
+            showToast('इस अंक की PDF उपलब्ध नहीं है।', 'error');
+          }
+        }
+
+        item.addEventListener('click', openThisPaper);
+        item.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') openThisPaper();
+        });
+
+        grid.appendChild(item);
+
+        // Auto-open latest on first load
+        if (archivePage === 1 && i === 0) {
+          const pdfUrl = paper.pdf_url || paper.file_url || paper.url;
+          if (pdfUrl) {
+            item.classList.add('active');
+            openPdf(pdfUrl, paper.title || paper.date || 'epaper');
+          }
+        }
+      });
+
+      // Load more button
+      const loadMoreBtn = document.getElementById('load-more-btn');
+      if (archivePage < totalArchivePages) {
+        loadMoreBtn.style.display = 'inline-flex';
+        loadMoreBtn.onclick = function() {
+          archivePage++;
+          loadArchive(false);
+        };
+      } else {
+        loadMoreBtn.style.display = 'none';
+      }
+
+    } catch (e) {
+      if (archivePage === 1) {
+        document.getElementById('archive-grid').innerHTML = `
+          <div style="grid-column:1/-1;text-align:center;padding:40px;">
+            <p class="hi-text" style="color:var(--gray-500);">ई-पेपर लोड नहीं हो सका।</p>
+          </div>`;
+      }
+    }
+  }
+
+  function getCityName(slug) {
+    const ed = window.JN_CONFIG && window.JN_CONFIG.editions.find(e => e.slug === slug);
+    if (!ed) return slug || '';
+    return getLang() === 'hi' ? ed.hi : ed.en;
+  }
+
+  /* ── Edition Filters ── */
+  function buildEditionFilters() {
+    const container = document.getElementById('edition-filters');
+    if (!container || !window.JN_CONFIG) return;
+
+    window.JN_CONFIG.editions.forEach(function(ed) {
+      const btn = document.createElement('button');
+      btn.className = 'edition-btn hi-text';
+      btn.dataset.edition = ed.slug;
+      btn.textContent = getLang() === 'hi' ? ed.hi : ed.en;
+      container.appendChild(btn);
+    });
+
+    container.addEventListener('click', function(e) {
+      const btn = e.target.closest('.edition-btn');
+      if (!btn) return;
+      container.querySelectorAll('.edition-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentEdition = btn.dataset.edition || '';
+      loadArchive(true);
+    });
+  }
+
+  /* ── Init ── */
+  document.addEventListener('DOMContentLoaded', function() {
+    initPdfControls();
+    buildEditionFilters();
+    loadArchive(true);
+  });
+
+})();
+</script>
+</body>
+</html>

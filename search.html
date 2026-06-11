@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="hi" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, follow">
+  <title id="page-title">खोज | जनबोल न्यूज़</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div id="navbar-inject"></div>
+
+<main id="main-content" role="main">
+
+  <!-- Search Hero -->
+  <div class="search-hero" role="search" aria-label="समाचार खोजें">
+    <div class="container">
+      <h1 class="search-hero-title hi-text">समाचार खोजें</h1>
+      <p class="search-hero-sub hi-text">जनबोल न्यूज़ पर हजारों खबरें खोजें</p>
+      <div class="search-big-input">
+        <input
+          type="search"
+          id="main-search-input"
+          placeholder="खबर खोजें… / Search news…"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          aria-label="समाचार खोजें"
+          aria-describedby="search-help"
+        >
+        <button class="search-big-btn" id="main-search-btn" aria-label="खोजें">🔍</button>
+      </div>
+      <p id="search-help" class="hi-text" style="color:var(--gray-500);font-size:12px;margin-top:10px;">
+        Enter दबाएं या बटन पर क्लिक करें
+      </p>
+    </div>
+  </div>
+
+  <div class="container" style="padding-top:var(--space-lg);">
+
+    <!-- Filters Row -->
+    <div style="display:flex;align-items:center;gap:var(--space-md);flex-wrap:wrap;margin-bottom:var(--space-md);">
+      <!-- Language Filter -->
+      <div class="filter-chips" id="lang-filter-chips" role="group" aria-label="भाषा फ़िल्टर">
+        <span class="hi-text" style="font-size:13px;color:var(--gray-500);font-weight:600;">भाषा:</span>
+        <button class="filter-chip hi-text active" data-lang="">सभी</button>
+        <button class="filter-chip hi-text" data-lang="hi">हिंदी</button>
+        <button class="filter-chip" data-lang="en">English</button>
+      </div>
+
+      <div class="filter-sep" aria-hidden="true"></div>
+
+      <!-- Category Filter -->
+      <div class="filter-chips" id="cat-filter-chips" role="group" aria-label="श्रेणी फ़िल्टर">
+        <span class="hi-text" style="font-size:13px;color:var(--gray-500);font-weight:600;">श्रेणी:</span>
+        <button class="filter-chip hi-text active" data-cat="">सभी</button>
+        <!-- Category chips added by JS -->
+      </div>
+    </div>
+
+    <!-- Results Layout -->
+    <div style="display:grid;grid-template-columns:1fr var(--sidebar-width);gap:var(--space-lg);align-items:start;">
+
+      <!-- Results Main -->
+      <div>
+        <!-- Results header -->
+        <div class="search-results-header" id="search-results-header" aria-live="polite" aria-atomic="true">
+          <span class="hi-text">खोजने के लिए ऊपर टाइप करें।</span>
+        </div>
+
+        <!-- Results Grid -->
+        <div id="search-results-grid" class="search-results-grid" aria-live="polite" aria-label="खोज परिणाम"></div>
+
+        <!-- No results -->
+        <div id="no-results" class="no-results hidden">
+          <div class="no-results-icon">🔍</div>
+          <div class="no-results-title hi-text" id="no-results-title">कोई परिणाम नहीं मिला</div>
+          <p class="no-results-sub hi-text" id="no-results-sub">
+            इस खोज के लिए कोई लेख नहीं मिला। कृपया अलग कीवर्ड आज़माएं।
+          </p>
+          <div style="margin-top:var(--space-md);display:flex;gap:var(--space-sm);justify-content:center;flex-wrap:wrap;" id="search-suggestions"></div>
+        </div>
+
+        <!-- Loading state -->
+        <div id="search-loading" class="hidden">
+          <!-- Skeletons injected here -->
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="search-pagination" role="navigation" aria-label="खोज परिणाम पेज"></div>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="sidebar" aria-label="साइडबार">
+
+        <!-- Trending searches -->
+        <div class="sidebar-widget">
+          <div class="widget-header">
+            <span class="hi-text">🔥 लोकप्रिय खोज</span>
+            <span class="en">TRENDING</span>
+          </div>
+          <div class="widget-body" id="trending-searches">
+            <div style="padding:6px 0;display:flex;flex-wrap:wrap;gap:6px;" id="trending-tags">
+              <!-- Tags added by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Ad -->
+        <div class="ad-slot ad-slot-square" style="margin-top:var(--space-md);" aria-label="Advertisement"></div>
+
+        <!-- Recent articles -->
+        <div class="sidebar-widget" style="margin-top:var(--space-md);">
+          <div class="widget-header">
+            <span class="hi-text">📰 हाल की खबरें</span>
+          </div>
+          <div class="widget-body" id="recent-articles"></div>
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+
+</main>
+
+<div id="footer-inject"></div>
+<div class="toast-container" id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script src="/js/news.js"></script>
+<script src="/js/nav.js"></script>
+<script src="/js/ads.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  const newsAPI = new NewsAPI();
+
+  /* ── State ── */
+  let currentQuery    = '';
+  let currentLang     = '';
+  let currentCat      = '';
+  let currentPage     = 1;
+  let totalPages      = 1;
+  let totalResults    = 0;
+  let searchDebounce  = null;
+  const LIMIT = (window.JN_CONFIG && window.JN_CONFIG.articlesPerPage) || 12;
+
+  /* ── Get initial query from URL ── */
+  function readURLQuery() {
+    const params = new URLSearchParams(window.location.search);
+    currentQuery = params.get('q') || '';
+    currentLang  = params.get('lang') || '';
+    currentCat   = params.get('cat') || '';
+    currentPage  = parseInt(params.get('page') || '1', 10) || 1;
+  }
+
+  /* ── Update URL ── */
+  function updateURL() {
+    const params = new URLSearchParams();
+    if (currentQuery) params.set('q', currentQuery);
+    if (currentLang)  params.set('lang', currentLang);
+    if (currentCat)   params.set('cat', currentCat);
+    if (currentPage > 1) params.set('page', currentPage);
+    const newURL = window.location.pathname + '?' + params.toString();
+    window.history.replaceState({}, '', newURL);
+  }
+
+  /* ── Search ── */
+  async function doSearch(resetPage) {
+    if (resetPage) currentPage = 1;
+
+    const q = currentQuery.trim();
+    if (!q) {
+      setResultsHeader('<span class="hi-text">खोजने के लिए ऊपर टाइप करें।</span>');
+      document.getElementById('search-results-grid').innerHTML = '';
+      document.getElementById('no-results').classList.add('hidden');
+      document.getElementById('search-pagination').innerHTML = '';
+      return;
+    }
+
+    // Update page title
+    document.title = `"${q}" की खोज | जनबोल न्यूज़`;
+
+    // Show loading
+    const loadingEl = document.getElementById('search-loading');
+    const grid      = document.getElementById('search-results-grid');
+    const noResults = document.getElementById('no-results');
+    loadingEl.classList.remove('hidden');
+    loadingEl.innerHTML = '';
+    loadingEl.appendChild(renderSkeleton(6, 180));
+    grid.innerHTML = '';
+    noResults.classList.add('hidden');
+
+    setResultsHeader(`<span class="hi-text">"<strong>${escapeHtml(q)}</strong>" के लिए खोज रहे हैं…</span>`);
+
+    updateURL();
+
+    try {
+      const data = await newsAPI.fetchSearch(q, {
+        lang: currentLang || undefined,
+        category: currentCat || undefined,
+        page: currentPage,
+        limit: LIMIT,
+      });
+
+      const articles = data.data?.items || data.data || [];
+      const total    = data.total || data.count || articles.length;
+      totalResults   = total;
+      totalPages     = data.last_page || data.pages || Math.ceil(total / LIMIT) || 1;
+
+      loadingEl.classList.add('hidden');
+      loadingEl.innerHTML = '';
+
+      if (!articles.length) {
+        noResults.classList.remove('hidden');
+        document.getElementById('no-results-title').textContent =
+          `"${q}" के लिए कोई परिणाम नहीं मिला`;
+        buildSearchSuggestions(q);
+        setResultsHeader(`<span class="hi-text">"<strong>${escapeHtml(q)}</strong>" — कोई परिणाम नहीं</span>`);
+        buildSearchPagination();
+        return;
+      }
+
+      // Results header
+      const lang = getLang();
+      setResultsHeader(
+        lang === 'hi'
+          ? `<strong>${total}</strong> परिणाम "<strong>${escapeHtml(q)}</strong>" के लिए (पृष्ठ ${currentPage}/${totalPages})`
+          : `<strong>${total}</strong> results for "<strong>${escapeHtml(q)}</strong>" (Page ${currentPage}/${totalPages})`
+      );
+
+      // Render cards
+      grid.innerHTML = '';
+      articles.forEach(function(art, i) {
+        const card = renderArticleCard(art, { size: 'md', showExcerpt: true });
+        card.classList.add('fade-in-up', 'fade-in-up-delay-' + Math.min(i+1, 4));
+        grid.appendChild(card);
+      });
+
+      buildSearchPagination();
+      grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (e) {
+      loadingEl.classList.add('hidden');
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:40px;">
+          <p class="hi-text" style="color:var(--gray-500);">खोज नहीं हो सकी। कृपया पुनः प्रयास करें।</p>
+          <button onclick="doSearch(false)" class="btn-primary hi-text" style="margin-top:16px;">पुनः प्रयास</button>
+        </div>`;
+      setResultsHeader('<span class="hi-text" style="color:var(--red-primary);">खोज में त्रुटि हुई।</span>');
+    }
+  }
+
+  /* ── Search Suggestions (no results state) ── */
+  function buildSearchSuggestions(q) {
+    const words = q.split(/\s+/).filter(Boolean);
+    const container = document.getElementById('search-suggestions');
+    container.innerHTML = '';
+
+    // Suggest searching by individual words
+    words.forEach(function(word) {
+      if (word.length < 2) return;
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip hi-text';
+      chip.textContent = word;
+      chip.addEventListener('click', function() {
+        currentQuery = word;
+        document.getElementById('main-search-input').value = word;
+        doSearch(true);
+      });
+      container.appendChild(chip);
+    });
+
+    // Popular categories
+    const popular = ['राजनीति', 'खेल', 'मनोरंजन', 'तकनीक'];
+    popular.forEach(function(term) {
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip hi-text';
+      chip.textContent = term;
+      chip.addEventListener('click', function() {
+        currentQuery = term;
+        document.getElementById('main-search-input').value = term;
+        doSearch(true);
+      });
+      container.appendChild(chip);
+    });
+  }
+
+  /* ── Set Results Header ── */
+  function setResultsHeader(html) {
+    const el = document.getElementById('search-results-header');
+    if (el) el.innerHTML = html;
+  }
+
+  /* ── Search Pagination ── */
+  function buildSearchPagination() {
+    const container = document.getElementById('search-pagination');
+    container.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    function makeBtn(label, page, isActive, isDisabled) {
+      const btn = document.createElement('button');
+      btn.className = 'page-btn' + (isActive ? ' active' : '');
+      btn.textContent = label;
+      btn.disabled = isDisabled || false;
+      if (!isDisabled) {
+        btn.addEventListener('click', function() {
+          currentPage = page;
+          doSearch(false);
+        });
+      }
+      return btn;
+    }
+
+    container.appendChild(makeBtn('‹ पिछला', currentPage - 1, false, currentPage <= 1));
+    const range = getPageRange(currentPage, totalPages);
+    range.forEach(function(p) {
+      if (p === '…') {
+        const el = document.createElement('span');
+        el.className = 'page-btn';
+        el.style.cursor = 'default';
+        el.textContent = '…';
+        container.appendChild(el);
+      } else {
+        container.appendChild(makeBtn(p, p, p === currentPage, false));
+      }
+    });
+    container.appendChild(makeBtn('अगला ›', currentPage + 1, false, currentPage >= totalPages));
+  }
+
+  function getPageRange(current, total) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    if (current <= 4) return [1, 2, 3, 4, 5, '…', total];
+    if (current >= total - 3) return [1, '…', total-4, total-3, total-2, total-1, total];
+    return [1, '…', current-1, current, current+1, '…', total];
+  }
+
+  /* ── Escape HTML ── */
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Language Filter ── */
+  function initLangFilter() {
+    const chips = document.querySelectorAll('#lang-filter-chips .filter-chip');
+    chips.forEach(function(chip) {
+      chip.classList.toggle('active', chip.dataset.lang === currentLang);
+      chip.addEventListener('click', function() {
+        chips.forEach(function(c) { c.classList.remove('active'); });
+        chip.classList.add('active');
+        currentLang = chip.dataset.lang || '';
+        if (currentQuery) doSearch(true);
+      });
+    });
+  }
+
+  /* ── Category Filter ── */
+  function buildCatFilter() {
+    const container = document.getElementById('cat-filter-chips');
+    if (!container || !window.JN_CONFIG) return;
+    const lang = getLang();
+    window.JN_CONFIG.categories.slice(0, 6).forEach(function(cat) {
+      const chip = document.createElement('button');
+      chip.className = 'filter-chip hi-text' + (cat.slug === currentCat ? ' active' : '');
+      chip.dataset.cat = cat.slug;
+      chip.textContent = lang === 'hi' ? cat.hi : cat.en;
+      container.appendChild(chip);
+    });
+
+    container.addEventListener('click', function(e) {
+      const btn = e.target.closest('.filter-chip[data-cat]');
+      if (!btn) return;
+      container.querySelectorAll('.filter-chip').forEach(function(c) { c.classList.remove('active'); });
+      btn.classList.add('active');
+      currentCat = btn.dataset.cat || '';
+      if (currentQuery) doSearch(true);
+    });
+  }
+
+  /* ── Trending Tags ── */
+  const TRENDING_TERMS_HI = ['मोदी', 'क्रिकेट', 'बॉलीवुड', 'मौसम', 'बजट', 'शेयर बाजार', 'IPL', 'चुनाव'];
+  const TRENDING_TERMS_EN = ['Modi', 'Cricket', 'Bollywood', 'Budget', 'Weather', 'Election', 'IPL', 'Stock Market'];
+
+  function buildTrendingTags() {
+    const container = document.getElementById('trending-tags');
+    if (!container) return;
+    const lang = getLang();
+    const terms = lang === 'hi' ? TRENDING_TERMS_HI : TRENDING_TERMS_EN;
+    container.innerHTML = '';
+    terms.forEach(function(term) {
+      const chip = document.createElement('button');
+      chip.className = 'tag-chip hi-text';
+      chip.textContent = term;
+      chip.style.cursor = 'pointer';
+      chip.addEventListener('click', function() {
+        currentQuery = term;
+        document.getElementById('main-search-input').value = term;
+        doSearch(true);
+      });
+      container.appendChild(chip);
+    });
+  }
+
+  /* ── Recent Articles Sidebar ── */
+  async function loadRecentArticles() {
+    const el = document.getElementById('recent-articles');
+    if (!el) return;
+    try {
+      const data = await newsAPI.fetchArticles({ limit: 5, page: 1 });
+      const articles = data.data?.items || data.data || [];
+      el.innerHTML = '';
+      articles.forEach(function(art, i) {
+        el.appendChild(renderArticleListItem(art, i));
+      });
+    } catch (e) {}
+  }
+
+  /* ── Init ── */
+  document.addEventListener('DOMContentLoaded', function() {
+    readURLQuery();
+
+    const input  = document.getElementById('main-search-input');
+    const btnEl  = document.getElementById('main-search-btn');
+
+    // Populate input from URL
+    if (input) input.value = currentQuery;
+
+    // Input: debounced live search
+    if (input) {
+      input.addEventListener('input', function() {
+        currentQuery = input.value;
+        clearTimeout(searchDebounce);
+        if (!currentQuery.trim()) {
+          document.getElementById('search-results-grid').innerHTML = '';
+          document.getElementById('no-results').classList.add('hidden');
+          document.getElementById('search-pagination').innerHTML = '';
+          setResultsHeader('<span class="hi-text">खोजने के लिए ऊपर टाइप करें।</span>');
+          return;
+        }
+        searchDebounce = setTimeout(function() { doSearch(true); }, 400);
+      });
+
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          clearTimeout(searchDebounce);
+          currentQuery = input.value;
+          doSearch(true);
+        }
+      });
+
+      // Auto-focus
+      input.focus();
+    }
+
+    if (btnEl) {
+      btnEl.addEventListener('click', function() {
+        currentQuery = input ? input.value : '';
+        doSearch(true);
+      });
+    }
+
+    initLangFilter();
+    buildCatFilter();
+    buildTrendingTags();
+    loadRecentArticles();
+
+    // Auto-search if URL has query
+    if (currentQuery) doSearch(false);
+  });
+
+  // Expose
+  window.doSearch = doSearch;
+
+})();
+</script>
+</body>
+</html>
