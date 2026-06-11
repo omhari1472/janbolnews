@@ -59,7 +59,7 @@ return new class extends Migration {
             $table->longText('content_hi')->nullable();
             $table->longText('content_en')->nullable();
             $table->string('featured_image')->nullable();
-            $table->foreignId('category_id')->constrained()->nullOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('author_id')->nullable()->constrained()->nullOnDelete();
             $table->enum('status', ['draft','published','scheduled'])->default('draft');
             $table->enum('language', ['hi','en','both'])->default('hi');
