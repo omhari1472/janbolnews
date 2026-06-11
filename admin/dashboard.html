@@ -84,9 +84,9 @@ async function loadDashboard() {
 
   try {
     const [statsData, articlesData, breakingData] = await Promise.all([
-      apiFetch('stats'),
-      apiFetch('articles', {}, '&limit=10&page=1'),
-      apiFetch('breaking')
+      apiFetch('/admin/dashboard/stats'),
+      apiFetch('/admin/articles?limit=10&page=1'),
+      apiFetch('/admin/breaking'),
     ]);
 
     // Stats

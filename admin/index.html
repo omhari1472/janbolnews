@@ -70,8 +70,10 @@ body::after{content:'';position:absolute;top:-40%;left:-20%;width:60%;height:120
   <div class="footer-note">Janbolnews &copy; 2025 &mdash; Admin Only</div>
 </div>
 <script>
-// Redirect if already logged in
-if (localStorage.getItem('jn_admin_key')) window.location.href = 'dashboard.html';
+const _isLocal = ['localhost','127.0.0.1'].includes(window.location.hostname);
+const _API = _isLocal ? 'http://localhost:8000/api' : '/api';
+
+if (localStorage.getItem('jn_admin_token')) window.location.href = 'dashboard.html';
 
 async function login(e) {
   e.preventDefault();
@@ -86,15 +88,15 @@ async function login(e) {
   errEl.style.display = 'none';
 
   try {
-    const res = await fetch('../api/admin.php?action=login', {
+    const res = await fetch(`${_API}/admin/login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ email, password })
     });
     const data = await res.json();
-    const token = data.token || (data.data && data.data.token);
+    const token = data.data?.access_token;
     if (data.success && token) {
-      localStorage.setItem('jn_admin_key', token);
+      localStorage.setItem('jn_admin_token', token);
       window.location.href = 'dashboard.html';
     } else {
       errMsg.textContent = data.message || 'Invalid credentials. Please try again.';

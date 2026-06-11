@@ -161,8 +161,8 @@ let allPapers = [];
 
 async function loadEpapers() {
   try {
-    const data = await apiFetch('epapers');
-    allPapers = data.data?.epapers || [];
+    const data = await apiFetch('/admin/epapers');
+    allPapers = data.data?.items || data.data?.epapers || [];
     renderGrid(allPapers);
   } catch {
     document.getElementById('epaperGrid').innerHTML = '<div class="empty-grid"><i class="fa-solid fa-triangle-exclamation" style="color:#C41E3A;"></i><p>Error loading e-papers.</p></div>';
@@ -189,8 +189,8 @@ function renderGrid(papers) {
   grid.innerHTML = `<div class="epaper-grid">${papers.map(p => `
     <div class="epaper-card">
       <div class="epaper-thumb">
-        ${p.thumbnail
-          ? `<img src="${p.thumbnail}" alt="${p.title_en || p.title_hi}">`
+        ${p.thumbnail_url
+          ? `<img src="${p.thumbnail_url}" alt="${p.title_en || p.title_hi}">`
           : `<div class="no-thumb"><i class="fa-solid fa-file-pdf"></i><p>No Preview</p></div>`}
         <div class="overlay">
           ${p.pdf_url ? `<a href="${p.pdf_url}" target="_blank" title="View PDF"><button class="overlay-btn"><i class="fa-solid fa-eye"></i></button></a>` : ''}
@@ -287,8 +287,11 @@ async function uploadEpaper() {
       bar.style.width = prog + '%';
     }, 300);
 
-    const r = await fetch(`../api/admin.php?action=upload_epaper&key=${encodeURIComponent(ADMIN_KEY())}`, {
-      method: 'POST', body: fd
+    const isLocal2 = ['localhost','127.0.0.1'].includes(window.location.hostname);
+    const _apiBase = isLocal2 ? 'http://localhost:8000/api' : '/api';
+    const r = await fetch(`${_apiBase}/admin/epapers`, {
+      method: 'POST', body: fd,
+      headers: { 'Authorization': `Bearer ${getToken()}`, 'Accept': 'application/json' },
     }).then(res => res.json());
 
     clearInterval(ticker);
@@ -321,7 +324,7 @@ async function uploadEpaper() {
 async function deleteEpaper(id) {
   if (!confirm('Delete this e-paper? This will also remove the PDF file.')) return;
   try {
-    const r = await apiFetch('delete_epaper', { method: 'POST', body: JSON.stringify({ id }) });
+    const r = await apiFetch(`/admin/epapers/${id}`, { method: 'DELETE' });
     if (r.success) { toast('E-Paper deleted'); loadEpapers(); }
     else toast(r.message || 'Delete failed', 'error');
   } catch { toast('Error', 'error'); }

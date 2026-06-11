@@ -151,15 +151,15 @@ async function loadArticles() {
   const tbody = document.getElementById('articlesTbody');
   tbody.innerHTML = '<tr><td colspan="9" class="empty"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.2rem;"></i></td></tr>';
 
-  let extra = `&limit=${PER_PAGE}&page=${page}`;
-  if (filterStatus) extra += `&status=${filterStatus}`;
-  if (filterLang)   extra += `&lang=${filterLang}`;
-  if (filterCat)    extra += `&category=${filterCat}`;
-  if (filterSearch) extra += `&search=${encodeURIComponent(filterSearch)}`;
+  let qs = `?limit=${PER_PAGE}&page=${page}`;
+  if (filterStatus) qs += `&status=${filterStatus}`;
+  if (filterLang)   qs += `&lang=${filterLang}`;
+  if (filterCat)    qs += `&category=${filterCat}`;
+  if (filterSearch) qs += `&search=${encodeURIComponent(filterSearch)}`;
 
   try {
-    const data = await apiFetch('articles', {}, extra);
-    const articles = data.data?.articles || [];
+    const data = await apiFetch(`/admin/articles${qs}`);
+    const articles = data.data?.items || data.data?.articles || [];
     const total = data.data?.total || 0;
     totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
@@ -177,7 +177,7 @@ async function loadArticles() {
       const dateStr = a.published_at ? formatDate(a.published_at) : (a.created_at ? formatDate(a.created_at) : '—');
       return `<tr>
         <td><input type="checkbox" value="${a.id}" ${checked} onchange="toggleSelect(${a.id}, this.checked)"></td>
-        <td><div class="thumb-cell">${a.thumbnail ? `<img src="${a.thumbnail}" alt="">` : '<i class="fa-solid fa-image"></i>'}</div></td>
+        <td><div class="thumb-cell">${a.featured_image_url ? `<img src="${a.featured_image_url}" alt="">` : '<i class="fa-solid fa-image"></i>'}</div></td>
         <td>
           <div class="title-hi">${a.title_hi || '<span style="color:#ccc;font-family:Inter;">—</span>'}</div>
           <div class="title-en">${a.title_en || ''}</div>
@@ -250,7 +250,7 @@ function clearSelection() {
 async function deleteArticle(id) {
   if (!confirm('Delete this article? This cannot be undone.')) return;
   try {
-    const r = await apiFetch('delete_article', { method: 'POST', body: JSON.stringify({ id }) });
+    const r = await apiFetch(`/admin/articles/${id}`, { method: 'DELETE' });
     if (r.success) { toast('Article deleted'); selectedIds.delete(id); loadArticles(); }
     else toast(r.message || 'Delete failed', 'error');
   } catch { toast('Error deleting article', 'error'); }
@@ -260,9 +260,9 @@ async function bulkPublish() {
   if (!selectedIds.size) return;
   const ids = [...selectedIds];
   try {
-    const r = await apiFetch('bulk_publish', { method: 'POST', body: JSON.stringify({ ids }) });
-    if (r.success) { toast(`${ids.length} articles published`); clearSelection(); loadArticles(); }
-    else toast(r.message || 'Bulk publish failed', 'error');
+    // Publish each selected article individually
+    await Promise.all(ids.map(id => apiFetch(`/admin/articles/${id}`, { method: 'POST', body: JSON.stringify({ status: 'published', _method: 'PUT' }) })));
+    toast(`${ids.length} articles published`); clearSelection(); loadArticles();
   } catch { toast('Error', 'error'); }
 }
 
@@ -271,9 +271,8 @@ async function bulkDelete() {
   if (!confirm(`Delete ${selectedIds.size} articles? This cannot be undone.`)) return;
   const ids = [...selectedIds];
   try {
-    const r = await apiFetch('bulk_delete', { method: 'POST', body: JSON.stringify({ ids }) });
-    if (r.success) { toast(`${ids.length} articles deleted`); clearSelection(); loadArticles(); }
-    else toast(r.message || 'Bulk delete failed', 'error');
+    await Promise.all(ids.map(id => apiFetch(`/admin/articles/${id}`, { method: 'DELETE' })));
+    toast(`${ids.length} articles deleted`); clearSelection(); loadArticles();
   } catch { toast('Error', 'error'); }
 }
 

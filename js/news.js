@@ -17,14 +17,14 @@
      * Internal fetch helper with error handling
      */
     async _get(path, params) {
-      // On local PHP server, append .php — on production .htaccess handles it
+      // Build base: on localhost Laravel runs on port 8000, production uses /api
       const isLocal = ['localhost','127.0.0.1'].includes(window.location.hostname);
-      // Extract base path and any slug segment
+      const base = isLocal ? 'http://localhost:8000/api/public' : (this.base || '/api/public');
       const parts = path.replace(/^\//, '').split('/');
-      const resource = parts[0]; // e.g. 'articles'
-      const slug     = parts[1]; // e.g. 'my-article-slug' (optional)
-      const filePath = isLocal ? this.base + '/' + resource + '.php' : this.base + '/' + resource;
-      const url = new URL(filePath, window.location.origin);
+      const resource = parts[0];
+      const slug     = parts[1];
+      const filePath = base + '/' + resource;
+      const url = new URL(filePath, isLocal ? 'http://localhost:8000' : window.location.origin);
       if (slug) url.searchParams.set('slug', decodeURIComponent(slug));
       if (params) {
         Object.entries(params).forEach(([k, v]) => {

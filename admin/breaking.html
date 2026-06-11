@@ -162,8 +162,8 @@ function render() {
 
 async function loadItems() {
   try {
-    const data = await apiFetch('breaking');
-    items = data.data?.items || [];
+    const data = await apiFetch('/admin/breaking');
+    items = data.data?.breaking || data.data?.items || [];
     renderList();
     updateStats();
     updateTickerPreview();
@@ -189,8 +189,8 @@ function renderList() {
         <div class="break-meta">${formatDate(item.created_at) || 'Recently added'}</div>
       </div>
       <div class="break-actions">
-        <label class="toggle" title="${item.active ? 'Click to deactivate' : 'Click to activate'}">
-          <input type="checkbox" ${item.active ? 'checked' : ''} onchange="toggleActive(${item.id}, this.checked)">
+        <label class="toggle" title="${item.is_active ? 'Click to deactivate' : 'Click to activate'}">
+          <input type="checkbox" ${item.is_active ? 'checked' : ''} onchange="toggleActive(${item.id}, this.checked)">
           <span class="toggle-slider"></span>
         </label>
         <button class="btn-icon" title="Edit" onclick="openEdit(${item.id})"><i class="fa-solid fa-pen"></i></button>
@@ -200,14 +200,14 @@ function renderList() {
 }
 
 function updateStats() {
-  const active = items.filter(i => i.active).length;
+  const active = items.filter(i => i.is_active).length;
   document.getElementById('totalCount').textContent = items.length;
   document.getElementById('activeCount').textContent = active;
   document.getElementById('inactiveCount').textContent = items.length - active;
 }
 
 function updateTickerPreview() {
-  const activeItems = items.filter(i => i.active);
+  const activeItems = items.filter(i => i.is_active);
   if (!activeItems.length) { document.getElementById('tickerPreview').style.display = 'none'; return; }
   document.getElementById('tickerPreview').style.display = 'block';
   document.getElementById('tickerText').textContent = activeItems.map(i => `🔴 ${i.text_hi || i.text_en}`).join('  |  ');
@@ -219,7 +219,7 @@ async function addItem() {
   const url = document.getElementById('newUrl').value.trim();
   if (!textHi) { toast('Hindi text is required', 'error'); document.getElementById('newTextHi').focus(); return; }
   try {
-    const r = await apiFetch('add_breaking', { method: 'POST', body: JSON.stringify({ text_hi: textHi, text_en: textEn, url, active: 1 }) });
+    const r = await apiFetch('/admin/breaking', { method: 'POST', body: JSON.stringify({ text_hi: textHi, text_en: textEn, url, is_active: 1 }) });
     if (r.success) {
       toast('Breaking news added!');
       document.getElementById('newTextHi').value = '';
@@ -232,7 +232,7 @@ async function addItem() {
 
 async function toggleActive(id, active) {
   try {
-    const r = await apiFetch('update_breaking', { method: 'POST', body: JSON.stringify({ id, active: active ? 1 : 0 }) });
+    const r = await apiFetch(`/admin/breaking/${id}`, { method: 'PUT', body: JSON.stringify({ is_active: active ? 1 : 0 }) });
     if (r.success) {
       const item = items.find(i => i.id === id);
       if (item) item.active = active;
@@ -246,7 +246,7 @@ async function toggleActive(id, active) {
 async function deleteItem(id) {
   if (!confirm('Delete this breaking news item?')) return;
   try {
-    const r = await apiFetch('delete_breaking', { method: 'POST', body: JSON.stringify({ id }) });
+    const r = await apiFetch(`/admin/breaking/${id}`, { method: 'DELETE' });
     if (r.success) { toast('Deleted'); loadItems(); }
     else toast(r.message || 'Delete failed', 'error');
   } catch { toast('Error', 'error'); }
@@ -255,15 +255,15 @@ async function deleteItem(id) {
 async function deactivateAll() {
   if (!confirm('Deactivate all breaking news items?')) return;
   try {
-    const r = await apiFetch('deactivate_all_breaking', { method: 'POST', body: JSON.stringify({}) });
-    if (r.success) { toast('All deactivated'); loadItems(); }
+    await Promise.all(items.map(i => apiFetch(`/admin/breaking/${i.id}`, { method: 'PUT', body: JSON.stringify({ is_active: 0 }) })));
+    toast('All deactivated'); loadItems(); const r = { success: true }; if (r.success) {}
     else toast('Failed', 'error');
   } catch { toast('Error', 'error'); }
 }
 
 function saveTickerSpeed() {
   const speed = document.getElementById('tickerSpeed').value;
-  apiFetch('save_settings', { method: 'POST', body: JSON.stringify({ ticker_speed: speed }) })
+  apiFetch('/admin/settings', { method: 'POST', body: JSON.stringify({ ticker_speed: speed }) })
     .then(() => toast('Ticker speed saved'));
 }
 
@@ -308,7 +308,7 @@ async function saveEdit(id) {
   const url = document.getElementById('editUrl').value.trim();
   if (!text_hi) { toast('Hindi text is required', 'error'); return; }
   try {
-    const r = await apiFetch('update_breaking', { method: 'POST', body: JSON.stringify({ id, text_hi, text_en, url }) });
+    const r = await apiFetch(`/admin/breaking/${id}`, { method: 'PUT', body: JSON.stringify({ text_hi, text_en, url }) });
     if (r.success) {
       toast('Updated!');
       document.getElementById('editModal').remove();
@@ -349,7 +349,8 @@ function onDragEnd() {
 async function saveOrder() {
   const ids = items.map(i => i.id);
   try {
-    await apiFetch('reorder_breaking', { method: 'POST', body: JSON.stringify({ ids }) });
+    // Reorder: update sort_order for each item
+    await Promise.all(ids.map((id, i) => apiFetch(`/admin/breaking/${id}`, { method: 'PUT', body: JSON.stringify({ sort_order: i + 1 }) })));
     toast('Order saved');
   } catch { toast('Order saved locally', 'warning'); }
 }

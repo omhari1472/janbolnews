@@ -1,6 +1,8 @@
 // ── Janbolnews Admin Shared Utilities ────────────────────────────────
-const ADMIN_KEY = () => localStorage.getItem('jn_admin_key') || '';
-const API_BASE = '../api/admin.php';
+const isLocal = ['localhost','127.0.0.1'].includes(window.location.hostname);
+const API_BASE = isLocal ? 'http://localhost:8000/api' : '/api';
+
+const getToken = () => localStorage.getItem('jn_admin_token') || '';
 
 // Inject Noto Sans Devanagari font
 (function injectFonts() {
@@ -15,25 +17,31 @@ const API_BASE = '../api/admin.php';
 })();
 
 function checkAuth() {
-  if (!ADMIN_KEY()) { window.location.href = 'index.html'; return false; }
+  if (!getToken()) { window.location.href = 'index.html'; return false; }
   return true;
 }
 
-function logout() {
-  localStorage.removeItem('jn_admin_key');
+async function logout() {
+  try { await apiFetch('/admin/logout', { method: 'POST' }); } catch (_) {}
+  localStorage.removeItem('jn_admin_token');
   window.location.href = 'index.html';
 }
 
-async function apiFetch(action, opts = {}, extraParams = '') {
-  const key = encodeURIComponent(ADMIN_KEY());
-  const url = `${API_BASE}?action=${action}&key=${key}${extraParams}`;
+/**
+ * apiFetch(path, opts)
+ * path — e.g. '/admin/articles', '/admin/articles/5', '/admin/dashboard/stats'
+ * opts — fetch options (method, body, headers)
+ */
+async function apiFetch(path, opts = {}) {
+  const url = `${API_BASE}${path}`;
   const res = await fetch(url, {
     ...opts,
     headers: {
-      'X-Admin-Key': ADMIN_KEY(),
+      'Authorization': `Bearer ${getToken()}`,
+      'Accept': 'application/json',
       ...(opts.body && !(opts.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
-      ...(opts.headers || {})
-    }
+      ...(opts.headers || {}),
+    },
   });
   if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
   return res.json();
