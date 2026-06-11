@@ -1,4 +1,8 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    # Requests starting with 'public/' route directly to public/index.php
+    # (prevents double public/public/ when route prefix is 'public')
+    RewriteRule ^public/.*$ public/index.php [L]
+    # All other requests (admin/, etc.) route through public/
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>
