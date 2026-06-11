@@ -63,11 +63,12 @@ return new class extends Migration {
             $table->foreignId('author_id')->nullable()->constrained()->nullOnDelete();
             $table->enum('status', ['draft','published','scheduled'])->default('draft');
             $table->enum('language', ['hi','en','both'])->default('hi');
-            $table->boolean('is_featured')->default(false);
-            $table->boolean('is_breaking')->default(false);
+            $table->boolean('is_featured')->default(false)->index();
+            $table->boolean('is_breaking')->default(false)->index();
             $table->unsignedBigInteger('views')->default(0);
             $table->timestamp('published_at')->nullable();
             $table->timestamps();
+            $table->index(['status', 'published_at']);
         });
 
         Schema::create('tags', function (Blueprint $table) {

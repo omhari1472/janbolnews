@@ -410,9 +410,10 @@
     }
 
     try {
-      const article = await newsAPI.fetchArticle(slug);
-      renderArticle(article.article || article);
-      loadRelated(article.article || article);
+      const resp = await newsAPI.fetchArticle(slug);
+      const article = resp.data?.article || resp.data || resp;
+      renderArticle(article);
+      loadRelated(article);
 
       // Increment view after delay
       setTimeout(function() {

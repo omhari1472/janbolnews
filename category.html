@@ -174,9 +174,9 @@
     try {
       const data = await newsAPI.fetchArticles(params);
       const articles  = data.data?.items || data.data || [];
-      const total     = data.total || data.count || articles.length;
+      const total     = data.data?.total || data.total || articles.length;
       totalArticles   = total;
-      totalPages      = data.last_page || data.pages || Math.ceil(total / LIMIT) || 1;
+      totalPages      = data.data?.total_pages || data.last_page || Math.ceil(total / LIMIT) || 1;
 
       const catName = getCategoryName(currentCat);
       setPageMeta(catName, total);

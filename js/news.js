@@ -23,9 +23,9 @@
       const parts = path.replace(/^\//, '').split('/');
       const resource = parts[0];
       const slug     = parts[1];
-      const filePath = base + '/' + resource;
+      // Slug goes into the URL path (not query param) — Laravel uses route params
+      const filePath = slug ? base + '/' + resource + '/' + encodeURIComponent(decodeURIComponent(slug)) : base + '/' + resource;
       const url = new URL(filePath, isLocal ? 'http://localhost:8000' : window.location.origin);
-      if (slug) url.searchParams.set('slug', decodeURIComponent(slug));
       if (params) {
         Object.entries(params).forEach(([k, v]) => {
           if (v !== undefined && v !== null && v !== '') {

@@ -210,9 +210,9 @@
       });
 
       const articles = data.data?.items || data.data || [];
-      const total    = data.total || data.count || articles.length;
+      const total    = data.data?.total || data.total || articles.length;
       totalResults   = total;
-      totalPages     = data.last_page || data.pages || Math.ceil(total / LIMIT) || 1;
+      totalPages     = data.data?.total_pages || data.last_page || Math.ceil(total / LIMIT) || 1;
 
       loadingEl.classList.add('hidden');
       loadingEl.innerHTML = '';

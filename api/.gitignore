@@ -16,6 +16,8 @@
 /public/build
 /public/hot
 /public/storage
+/public/setup.php
+/public/symlink.php
 /storage/*.key
 /storage/pail
 /vendor

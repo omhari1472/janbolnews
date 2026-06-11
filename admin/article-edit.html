@@ -89,6 +89,35 @@ let featuredImageUrl = '';
 let activeTab = 'hi'; // hi | en | both
 let saving = false;
 
+async function loadCategoryOptions() {
+  try {
+    const isLocal2 = ['localhost','127.0.0.1'].includes(window.location.hostname);
+    const base = isLocal2 ? 'http://localhost:8000/api' : '/api';
+    const data = await fetch(`${base}/admin/categories`, {
+      headers: { 'Authorization': `Bearer ${getToken()}`, 'Accept': 'application/json' }
+    }).then(r => r.json());
+    const cats = data.data || [];
+    const sel = document.getElementById('category');
+    if (sel) {
+      const blank = sel.options[0];
+      sel.innerHTML = '';
+      sel.appendChild(blank || Object.assign(document.createElement('option'), { value: '', textContent: '— Select Category —' }));
+      cats.forEach(c => sel.appendChild(Object.assign(document.createElement('option'), { value: c.id, textContent: `${c.name_hi} / ${c.name_en}` })));
+    }
+    const aSel = document.getElementById('author');
+    if (aSel) {
+      const aData = await fetch(`${base}/admin/authors`, {
+        headers: { 'Authorization': `Bearer ${getToken()}`, 'Accept': 'application/json' }
+      }).then(r => r.json());
+      const authors = aData.data || [];
+      const firstOpt = aSel.options[0];
+      aSel.innerHTML = '';
+      aSel.appendChild(firstOpt || Object.assign(document.createElement('option'), { value: '', textContent: '— Select Author —' }));
+      authors.forEach(a => aSel.appendChild(Object.assign(document.createElement('option'), { value: a.id, textContent: a.name })));
+    }
+  } catch (e) { /* keep hardcoded fallback */ }
+}
+
 function render() {
   const catOptions = JN_CATEGORIES.map(c => `<option value="${c.value}">${c.labelHi} / ${c.label}</option>`).join('');
   document.getElementById('pageBody').innerHTML = `
@@ -314,7 +343,6 @@ function render() {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); saveArticle('published'); }
   });
 
-  if (isEdit) loadArticle();
 }
 
 function setTab(tab) {
@@ -344,10 +372,11 @@ function countChars(textareaId, countId) {
 
 // ── Slug auto-generation ──────────────────────────────────────────
 function autoSlug() {
-  const title = document.getElementById('titleHi').value;
-  if (title && !document.getElementById('slug').dataset.manual) {
-    document.getElementById('slug').value = generateSlug(title);
-  }
+  if (document.getElementById('slug').dataset.manual) return;
+  const titleEn = document.getElementById('titleEn').value;
+  const titleHi = document.getElementById('titleHi').value;
+  const source = titleEn || titleHi;
+  if (source) document.getElementById('slug').value = generateSlug(source);
 }
 
 function regenSlug() {
@@ -526,7 +555,7 @@ function clearContent() {
 // ── Load existing article ─────────────────────────────────────────
 async function loadArticle() {
   try {
-    const data = await apiFetch('get_article', {}, `&id=${articleId}`);
+    const data = await apiFetch(`/admin/articles/${articleId}`);
     const a = data.data?.article || data.data;
     if (!a) { toast('Article not found', 'error'); return; }
 
@@ -534,7 +563,7 @@ async function loadArticle() {
     document.getElementById('titleEn').value = a.title_en || '';
     document.getElementById('slug').value = a.slug || '';
     document.getElementById('slug').dataset.manual = '1';
-    document.getElementById('category').value = a.category || '';
+    document.getElementById('category').value = a.category_id || '';
     document.getElementById('author').value = a.author || 'editor';
     document.getElementById('contentHi').value = a.content_hi || '';
     document.getElementById('contentEn').value = a.content_en || '';
@@ -551,8 +580,8 @@ async function loadArticle() {
       document.getElementById('scheduledAt').value = a.scheduled_at.replace(' ', 'T').substring(0,16);
       document.getElementById('scheduleGroup').style.display = 'block';
     }
-    if (a.thumbnail || a.featured_image) {
-      featuredImageUrl = a.thumbnail || a.featured_image;
+    if (a.featured_image_url || a.featured_image) {
+      featuredImageUrl = a.featured_image_url || a.featured_image;
       document.getElementById('imgUrl').value = featuredImageUrl;
       showImagePreview(featuredImageUrl);
     }
@@ -607,14 +636,14 @@ async function saveArticle(forceStatus) {
       title_hi:    titleHi,
       title_en:    titleEn,
       slug:        document.getElementById('slug').value.trim() || generateSlug(titleEn || titleHi),
-      category:    document.getElementById('category').value,
-      author:      document.getElementById('author').value,
+      category_id: document.getElementById('category').value,
+      author_id:   document.getElementById('author').value || null,
       content_hi:  document.getElementById('contentHi').value,
       content_en:  document.getElementById('contentEn').value,
       excerpt_hi:  document.getElementById('excerptHi').value,
       excerpt_en:  document.getElementById('excerptEn').value,
       status:      forceStatus || document.getElementById('status').value,
-      lang:        lang,
+      language:    lang,
       is_featured: document.getElementById('isFeatured').checked ? 1 : 0,
       is_breaking: document.getElementById('isBreaking').checked ? 1 : 0,
       tags:        tags.join(','),
@@ -626,18 +655,14 @@ async function saveArticle(forceStatus) {
     const scheduledAt = document.getElementById('scheduledAt').value;
     if (scheduledAt && payload.status === 'scheduled') payload.scheduled_at = scheduledAt;
 
-    // Upload image if file selected
-    if (featuredImageFile) {
-      const fd = new FormData();
-      fd.append('image', featuredImageFile);
-      const imgRes = await fetch(`../api/admin.php?action=upload_image&key=${encodeURIComponent(ADMIN_KEY())}`, {
-        method: 'POST', body: fd
-      }).then(r => r.json());
-      if (imgRes.success && imgRes.url) payload.featured_image = imgRes.url;
-    }
+    // Use FormData to support optional image upload
+    const fd = new FormData();
+    Object.entries(payload).forEach(([k, v]) => { if (v !== undefined && v !== null) fd.append(k, v); });
+    if (featuredImageFile) fd.append('featured_image', featuredImageFile);
+    if (isEdit) fd.append('_method', 'PUT');
 
-    const action = isEdit ? 'update_article' : 'create_article';
-    const r = await apiFetch(action, { method: 'POST', body: JSON.stringify(payload) });
+    const path = isEdit ? `/admin/articles/${articleId}` : '/admin/articles';
+    const r = await apiFetch(path, { method: 'POST', body: fd });
 
     if (r.success) {
       toast(forceStatus === 'published' ? 'Article published!' : 'Draft saved!');
@@ -660,6 +685,8 @@ async function saveArticle(forceStatus) {
 }
 
 render();
+loadCategoryOptions();
+if (articleId) loadArticle();
 </script>
 </body>
 </html>

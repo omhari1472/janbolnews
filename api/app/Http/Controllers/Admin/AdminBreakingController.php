@@ -14,12 +14,12 @@ class AdminBreakingController extends Controller {
 
     public function store(Request $request) {
         $request->validate(['text_hi' => 'required|string|max:500']);
-        $item = BreakingNews::create($request->all());
+        $item = BreakingNews::create($request->only(['text_hi','text_en','url','is_active','sort_order']));
         return $this->successResponse($item, 'Breaking news created', 201);
     }
 
     public function update(Request $request, BreakingNews $breaking) {
-        $breaking->update($request->all());
+        $breaking->update($request->only(['text_hi','text_en','url','is_active','sort_order']));
         return $this->successResponse($breaking, 'Updated');
     }
 

@@ -35,9 +35,6 @@ class PublicArticleController extends Controller {
         $slug    = $request->route('slug') ?? $request->query('slug');
         $article = Article::with(['category','author','tags'])->published()->where('slug',$slug)->firstOrFail();
 
-        // Increment views (fire and forget via DB increment)
-        Article::where('id', $article->id)->increment('views');
-
         return $this->successResponse($this->full($article));
     }
 

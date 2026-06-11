@@ -26,6 +26,7 @@ class PublicBreakingController extends Controller {
                 'slug'    => $a->slug,
             ]);
 
-        return $this->successResponse(array_merge($items->toArray(), $articles->toArray()));
+        $all = array_merge($items->toArray(), $articles->toArray());
+        return $this->successResponse($all);
     }
 }

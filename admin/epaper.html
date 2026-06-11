@@ -274,10 +274,8 @@ async function uploadEpaper() {
     const fd = new FormData();
     fd.append('pdf', pdfFile);
     if (thumbFile) fd.append('thumbnail', thumbFile);
-    fd.append('title_hi', titleHi);
-    fd.append('title_en', titleEn);
-    fd.append('edition', edition);
-    fd.append('city', city);
+    fd.append('title', titleHi || titleEn);
+    fd.append('edition', edition || 'main');
     fd.append('edition_date', date);
 
     // Simulate progress
