@@ -27,6 +27,11 @@ function runArtisan($root, $cmd) {
 }
 
 switch ($action) {
+    case 'fresh':
+        echo "--- Drop all tables + Migrate + Seed ---\n";
+        echo runArtisan($laravelRoot, 'migrate:fresh --seed --force');
+        break;
+
     case 'migrate':
         echo "--- Migrate ---\n";
         echo runArtisan($laravelRoot, 'migrate --force');
