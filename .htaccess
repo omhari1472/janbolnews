@@ -13,8 +13,9 @@ AddDefaultCharset UTF-8
   RewriteEngine On
   RewriteBase /
 
-  # Force HTTPS
+  # Force HTTPS (handles Bluehost proxy/load balancer)
   RewriteCond %{HTTPS} off
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
   # Remove trailing slash (except root)
