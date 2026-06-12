@@ -32,6 +32,11 @@ switch ($action) {
         echo runArtisan($laravelRoot, 'migrate:fresh --seed --force');
         break;
 
+    case 'seed_v2':
+        echo "--- Seeding ArticleSeederV2 (24 new articles) ---\n";
+        echo runArtisan($laravelRoot, 'db:seed --class=Database\\\\Seeders\\\\ArticleSeederV2 --force');
+        break;
+
     case 'migrate':
         echo "--- Migrate ---\n";
         echo runArtisan($laravelRoot, 'migrate --force');
