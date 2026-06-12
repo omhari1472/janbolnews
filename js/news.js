@@ -10,7 +10,7 @@
   ═══════════════════════════════════════ */
   class NewsAPI {
     constructor(base) {
-      this.base = base || window.API_BASE || '/api/public';
+      this.base = base || window.API_BASE || '/api/news';
     }
 
     /**
