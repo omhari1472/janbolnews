@@ -8,8 +8,8 @@
 $slug = trim($_GET['slug'] ?? '');
 if (!$slug) { header('Location: /'); exit; }
 
-// Fetch article from Laravel API (internal request)
-$apiUrl = 'http://localhost/api/news/articles/' . urlencode($slug);
+// Fetch article from Laravel API
+$apiUrl = 'https://janbolnews.com/api/news/articles/' . urlencode($slug);
 $ctx    = stream_context_create(['http' => ['timeout' => 5, 'ignore_errors' => true]]);
 $json   = @file_get_contents($apiUrl, false, $ctx);
 $data   = $json ? json_decode($json, true) : null;
