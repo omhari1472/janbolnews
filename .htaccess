@@ -25,6 +25,12 @@ AddDefaultCharset UTF-8
   # Serve index.html for /
   RewriteRule ^$ /index.html [L]
 
+  # OG proxy for social media crawlers (WhatsApp, Telegram, Twitter bots)
+  # Routes article.html?slug=X through share.php for proper og:image preview
+  RewriteCond %{QUERY_STRING} slug=(.+)
+  RewriteCond %{HTTP_USER_AGENT} (WhatsApp|Telegram|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|Discordbot|curl) [NC]
+  RewriteRule ^article\.html$ /share.php [L,QSA]
+
   # Extensionless URLs → .html (if no file/dir exists)
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d

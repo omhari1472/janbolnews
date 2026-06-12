@@ -47,8 +47,15 @@
       facebook:  'https://facebook.com/janbolnews',
       twitter:   'https://twitter.com/janbolnews',
       instagram: 'https://instagram.com/janbolnews',
-      youtube:   'https://youtube.com/janbolnews',
+      youtube:   'https://www.youtube.com/@janbolnews',
       telegram:  'https://t.me/janbolnews',
+      whatsapp:  'https://wa.me/918544440213',
+    },
+
+    contact: {
+      phone:    '+91 85444 40213',
+      email:    'janbolmedia@gmail.com',
+      whatsapp: '+91 85444 40213',
     },
 
     // Pagination

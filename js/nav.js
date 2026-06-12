@@ -64,7 +64,7 @@
         <div class="navbar-inner">
           <!-- Logo -->
           <a href="/index.html" class="navbar-logo" aria-label="Janbol News - होम पेज">
-            <div class="logo-icon hi-text">ज</div>
+            <img src="/img/logo.png" alt="Janbol News" style="height:44px;width:44px;object-fit:contain;border-radius:50%;">
             <div class="logo-text">
               <span class="logo-en">Janbol News</span>
               <span class="logo-hi hi-text">जनबोल न्यूज़</span>
@@ -105,7 +105,7 @@
       <div class="mobile-drawer-panel">
         <div class="drawer-header">
           <a href="/index.html" class="navbar-logo">
-            <div class="logo-icon hi-text">ज</div>
+            <img src="/img/logo.png" alt="Janbol News" style="height:40px;width:40px;object-fit:contain;border-radius:50%;">
             <div class="logo-text">
               <span class="logo-en" style="color:#fff">Janbol News</span>
               <span class="logo-hi hi-text">जनबोल न्यूज़</span>
@@ -190,16 +190,16 @@
               </div>
             </div>
 
-            <!-- Links -->
+            <!-- Contact -->
             <div>
-              <div class="footer-col-title hi-text">जानकारी</div>
+              <div class="footer-col-title hi-text">संपर्क करें</div>
               <div class="footer-links">
+                <a href="tel:+918544440213" class="hi-text">📞 +91 85444 40213</a>
+                <a href="mailto:janbolmedia@gmail.com" class="hi-text">✉ janbolmedia@gmail.com</a>
+                <a href="https://wa.me/918544440213" target="_blank" rel="noopener" class="hi-text">💬 WhatsApp करें</a>
                 <a href="/about.html" class="hi-text">हमारे बारे में</a>
-                <a href="/contact.html" class="hi-text">संपर्क करें</a>
                 <a href="/advertise.html" class="hi-text">विज्ञापन दें</a>
                 <a href="/privacy.html" class="hi-text">गोपनीयता नीति</a>
-                <a href="/terms.html" class="hi-text">नियम और शर्तें</a>
-                <a href="/sitemap.xml" class="hi-text">साइटमैप</a>
               </div>
             </div>
 
@@ -395,6 +395,97 @@
   /* ═════════════════════════════════
      INIT
   ═════════════════════════════════ */
+  /* ═════════════════════════════════
+     MOBILE BOTTOM NAV (Jagran-style)
+  ═════════════════════════════════ */
+  function injectMobileBottomNav() {
+    // Only inject on mobile
+    const existing = document.getElementById('jn-bottom-nav');
+    if (existing) return;
+
+    const path = window.location.pathname;
+    const isHome    = path === '/' || path.includes('index.html');
+    const isEpaper  = path.includes('epaper.html');
+    const isSearch  = path.includes('search.html');
+    const isCat     = path.includes('category.html');
+
+    const tabs = [
+      { label: 'होम',       labelEn: 'HOME',    href: '/index.html',   icon: homeIcon(),     active: isHome    },
+      { label: 'ताज़ा',     labelEn: 'LATEST',  href: '/category.html?cat=politics', icon: latestIcon(), active: false },
+      { label: 'ब्रेकिंग', labelEn: 'BREAKING', href: '/search.html?q=breaking',     icon: breakIcon(),  active: false },
+      { label: 'ई-पेपर',   labelEn: 'E-PAPER', href: '/epaper.html',  icon: epaperIcon(),   active: isEpaper  },
+      { label: 'खोजें',    labelEn: 'SEARCH',  href: '/search.html',  icon: searchIconSvg(),active: isSearch  },
+    ];
+
+    const css = `
+    <style id="jn-bottom-nav-css">
+    #jn-bottom-nav{
+      display:none;
+      position:fixed;bottom:0;left:0;right:0;z-index:9999;
+      background:#fff;border-top:1px solid #e5e5e5;
+      box-shadow:0 -2px 12px rgba(0,0,0,.1);
+      padding:0;height:56px;
+    }
+    #jn-bottom-nav .jn-tabs{
+      display:flex;height:100%;
+    }
+    #jn-bottom-nav .jn-tab{
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:2px;text-decoration:none;color:#555;font-family:'Inter',sans-serif;
+      border:none;background:none;cursor:pointer;padding:0;transition:.15s;
+      position:relative;
+    }
+    #jn-bottom-nav .jn-tab:active{background:rgba(196,30,58,.06);}
+    #jn-bottom-nav .jn-tab.active{color:#C41E3A;}
+    #jn-bottom-nav .jn-tab.active::before{
+      content:'';position:absolute;top:0;left:15%;right:15%;height:2.5px;
+      background:#C41E3A;border-radius:0 0 3px 3px;
+    }
+    #jn-bottom-nav .jn-tab svg{width:20px;height:20px;flex-shrink:0;}
+    #jn-bottom-nav .jn-tab-label{
+      font-size:9.5px;font-weight:600;letter-spacing:.2px;
+      font-family:'Noto Sans Devanagari','Inter',sans-serif;
+      white-space:nowrap;line-height:1;
+    }
+    /* Push page content above bottom nav on mobile */
+    @media(max-width:768px){
+      #jn-bottom-nav{display:block;}
+      body{padding-bottom:56px;}
+    }
+    @media print{#jn-bottom-nav{display:none!important;}}
+    </style>`;
+
+    const navHtml = `
+    ${css}
+    <nav id="jn-bottom-nav" role="navigation" aria-label="मोबाइल नेविगेशन">
+      <div class="jn-tabs">
+        ${tabs.map(t => `
+        <a href="${t.href}" class="jn-tab${t.active ? ' active' : ''}" aria-label="${t.label}">
+          ${t.icon}
+          <span class="jn-tab-label hi-text">${t.label}</span>
+        </a>`).join('')}
+      </div>
+    </nav>`;
+
+    document.body.insertAdjacentHTML('beforeend', navHtml);
+  }
+
+  function homeIcon() {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+  }
+  function latestIcon() {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  }
+  function breakIcon() {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+  }
+  function epaperIcon() {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+  }
+  function searchIconSvg() {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+  }
+
   function init() {
     // Inject navbar before #app-root or at start of body
     const navTarget = document.getElementById('navbar-inject');
@@ -420,6 +511,9 @@
       wrapper.innerHTML = footHTML;
       document.body.appendChild(wrapper);
     }
+
+    // Inject mobile bottom nav (Jagran-style)
+    injectMobileBottomNav();
 
     // Wire events
     setTopbarDate();
