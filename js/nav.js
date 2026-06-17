@@ -21,7 +21,14 @@
       return `<a href="/category.html?cat=${cat.slug}" class="hi-text">${lang === 'hi' ? cat.hi : cat.en}</a>`;
     }).join('');
 
+    const catPills = cats.map(function(cat) {
+      return `<a href="/category.html?cat=${cat.slug}" class="hi-text" data-cat="${cat.slug}">${lang === 'hi' ? cat.hi : cat.en}</a>`;
+    }).join('');
+
     return `
+    <!-- Mobile Date Bar (shown only on mobile) -->
+    <div class="mobile-datebar" id="mobile-datebar"></div>
+
     <!-- Breaking News Ticker -->
     <div class="breaking-ticker" id="breaking-ticker">
       <div class="ticker-label">
@@ -98,6 +105,13 @@
         </div>
       </div>
     </nav>
+
+    <!-- Mobile Category Pills (shown only on mobile, horizontal scroll) -->
+    <div class="mobile-cat-scroll" id="mobile-cat-scroll" aria-label="श्रेणियाँ">
+      <a href="/index.html" class="hi-text mobile-cat-home">🏠 होम</a>
+      ${catPills}
+      <a href="/epaper.html" class="hi-text">📰 ई-पेपर</a>
+    </div>
 
     <!-- Mobile Drawer -->
     <div class="mobile-drawer" id="mobile-drawer" role="dialog" aria-modal="true" aria-label="नेविगेशन मेनू">
@@ -232,7 +246,7 @@
     const params = new URLSearchParams(window.location.search);
     const currentCat = params.get('cat');
 
-    document.querySelectorAll('.navbar-nav a, .drawer-nav a').forEach(function(link) {
+    document.querySelectorAll('.navbar-nav a, .drawer-nav a, .mobile-cat-scroll a').forEach(function(link) {
       const href = link.getAttribute('href');
       if (!href) return;
 
@@ -263,13 +277,25 @@
      TOPBAR DATE
   ═════════════════════════════════ */
   function setTopbarDate() {
-    const el = document.getElementById('topbar-date');
-    if (!el) return;
     const now = new Date();
     const lang = (window.getLang && window.getLang()) || 'hi';
-    const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-    const locale = lang === 'hi' ? 'hi-IN' : 'en-IN';
-    el.textContent = now.toLocaleDateString(locale, opts);
+
+    // Desktop topbar date
+    const el = document.getElementById('topbar-date');
+    if (el) {
+      const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      el.textContent = now.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', opts);
+    }
+
+    // Mobile date bar — show date + time like "बुध, 17 जून 2026 | 10:45 AM IST"
+    const mbar = document.getElementById('mobile-datebar');
+    if (mbar) {
+      const dateOpts = { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' };
+      const timeOpts = { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' };
+      const dateStr = now.toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', dateOpts);
+      const timeStr = now.toLocaleTimeString('en-IN', timeOpts).toUpperCase() + ' IST';
+      mbar.textContent = dateStr + '  |  ' + timeStr;
+    }
   }
 
   /* ═════════════════════════════════

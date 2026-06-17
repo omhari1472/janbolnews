@@ -2555,6 +2555,86 @@ input, select, textarea {
   .epaper-archive-grid {
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   }
+
+  /* ── Mobile Date Bar ── */
+  .mobile-datebar {
+    display: block;
+    background: #111;
+    color: #bbb;
+    font-size: 11px;
+    font-family: var(--font-body);
+    letter-spacing: 0.02em;
+    text-align: center;
+    padding: 5px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    border-bottom: 1px solid #222;
+  }
+
+  /* ── Mobile Category Pills ── */
+  .mobile-cat-scroll {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 8px 12px;
+    background: #fff;
+    border-bottom: 2px solid var(--brand-red, #C41E3A);
+    position: sticky;
+    top: calc(var(--ticker-height) + var(--navbar-height)); /* below ticker + navbar */
+    z-index: 98;
+    /* subtle shadow to separate from content */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+  }
+
+  .mobile-cat-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-cat-scroll a {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 5px 13px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--font-hindi);
+    color: #333;
+    background: #f3f3f3;
+    border: 1.5px solid transparent;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    flex-shrink: 0;
+  }
+
+  .mobile-cat-scroll a:hover,
+  .mobile-cat-scroll a:active {
+    background: #ffe5e9;
+    color: var(--brand-red, #C41E3A);
+    border-color: var(--brand-red, #C41E3A);
+  }
+
+  .mobile-cat-scroll a.active {
+    background: var(--brand-red, #C41E3A);
+    color: #fff;
+    border-color: var(--brand-red, #C41E3A);
+  }
+
+  /* bump total header offset for mobile — ticker + navbar + cat bar (~47) */
+  :root {
+    --total-header-offset: calc(var(--ticker-height) + var(--navbar-height) + 47px);
+  }
+}
+
+/* ── Mobile elements hidden on desktop ── */
+.mobile-datebar,
+.mobile-cat-scroll {
+  display: none;
 }
 
 /* ============================================================
