@@ -55,10 +55,17 @@ Route::middleware(['auth:sanctum', 'ability:admin'])->prefix('admin')->group(fun
     // Dashboard
     Route::get('/dashboard/stats',  [AdminDashboardController::class, 'stats']);
 
-    // Articles
+    // Articles — static routes must come before {article} wildcard
     Route::get('/articles',                [AdminArticleController::class, 'index']);
-    Route::get('/articles/{article}',      [AdminArticleController::class, 'show']);
     Route::post('/articles',               [AdminArticleController::class, 'store']);
+    Route::post('/articles/publish-scheduled', function() {
+        $count = \App\Models\Article::where('status', 'scheduled')
+            ->whereNotNull('scheduled_at')
+            ->where('scheduled_at', '<=', now())
+            ->update(['status' => 'published', 'published_at' => now()]);
+        return response()->json(['success' => true, 'published' => $count]);
+    });
+    Route::get('/articles/{article}',      [AdminArticleController::class, 'show']);
     Route::post('/articles/{article}',     [AdminArticleController::class, 'update']);   // POST with _method=PUT for multipart
     Route::delete('/articles/{article}',   [AdminArticleController::class, 'destroy']);
 
@@ -91,12 +98,4 @@ Route::middleware(['auth:sanctum', 'ability:admin'])->prefix('admin')->group(fun
     Route::get('/settings',                [AdminSettingsController::class, 'index']);
     Route::post('/settings',               [AdminSettingsController::class, 'update']);
 
-    // Trigger scheduled publishing manually
-    Route::post('/articles/publish-scheduled', function() {
-        $count = \App\Models\Article::where('status', 'scheduled')
-            ->whereNotNull('scheduled_at')
-            ->where('scheduled_at', '<=', now())
-            ->update(['status' => 'published', 'published_at' => now()]);
-        return response()->json(['success' => true, 'published' => $count]);
-    });
 });
