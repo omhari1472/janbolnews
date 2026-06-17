@@ -616,6 +616,7 @@ input, select, textarea {
   transform: translateX(100%);
   transition: transform var(--transition-mid);
   box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+  padding-bottom: 64px; /* clear mobile bottom nav (56px) */
 }
 
 .mobile-drawer.open {
