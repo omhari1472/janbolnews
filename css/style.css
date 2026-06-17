@@ -2465,11 +2465,13 @@ input, select, textarea {
   .topbar { display: none; }
 
   .navbar-inner {
-    grid-template-columns: auto 1fr auto auto;
+    display: flex;
+    justify-content: space-between;
   }
 
   .navbar-nav { display: none; }
   .hamburger { display: flex; }
+  .navbar-right { margin-left: auto; }
 
   .hero-grid {
     grid-template-columns: 1fr;
