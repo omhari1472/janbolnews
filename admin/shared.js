@@ -102,6 +102,7 @@ function injectSidebar(activePage) {
       --text:#111;--text2:#444;--text3:#888;
       --border:#e5e5e5;--bg:#f6f6f4;
     }
+    html,body{overflow-x:hidden}
     body{font-family:var(--font);background:var(--bg);display:flex;min-height:100vh;color:var(--text)}
     .sidebar{width:var(--sidebar);background:var(--navy);min-height:100vh;display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100;border-right:3px solid var(--red)}
     .sb-brand{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.07)}
@@ -119,7 +120,7 @@ function injectSidebar(activePage) {
     .sb-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,.07)}
     .sb-footer a{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:7px;color:rgba(255,255,255,.35);font-size:.81rem;cursor:pointer;transition:.15s;text-decoration:none}
     .sb-footer a:hover{background:rgba(255,255,255,.05);color:#fff}
-    .main-wrap{margin-left:var(--sidebar);flex:1;min-height:100vh;display:flex;flex-direction:column}
+    .main-wrap{margin-left:var(--sidebar);width:calc(100% - var(--sidebar));min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
     .top-bar{background:#fff;border-bottom:2px solid var(--border);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.04)}
     .top-title{font-family:var(--font);font-weight:800;font-size:1rem;color:var(--navy);display:flex;align-items:center;gap:8px}
     .top-title::before{content:'';display:inline-block;width:4px;height:18px;background:var(--red);border-radius:2px}
