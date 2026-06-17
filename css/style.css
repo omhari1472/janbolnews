@@ -596,7 +596,7 @@ input, select, textarea {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 998;
+  z-index: 1001;
 }
 
 .mobile-drawer-overlay {
@@ -608,14 +608,14 @@ input, select, textarea {
 .mobile-drawer-panel {
   position: absolute;
   top: 0;
-  left: 0;
+  right: 0;
   bottom: 0;
   width: 280px;
   background: var(--card-bg);
   overflow-y: auto;
-  transform: translateX(-100%);
+  transform: translateX(100%);
   transition: transform var(--transition-mid);
-  box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.15);
 }
 
 .mobile-drawer.open {

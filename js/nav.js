@@ -548,7 +548,14 @@
     initSearch();
 
     const hamburger = document.getElementById('hamburger-btn');
-    if (hamburger) hamburger.addEventListener('click', openDrawer);
+    if (hamburger) hamburger.addEventListener('click', function() {
+      const drawer = document.getElementById('mobile-drawer');
+      if (drawer && drawer.classList.contains('open')) {
+        window.closeDrawer();
+      } else {
+        openDrawer();
+      }
+    });
 
     const drawerClose = document.getElementById('drawer-close-btn');
     if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
