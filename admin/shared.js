@@ -118,8 +118,9 @@ function injectSidebar(activePage) {
     .sb-nav a i{width:18px;text-align:center;font-size:.83rem;flex-shrink:0}
     .sb-nav-label{font-size:.62rem;text-transform:uppercase;letter-spacing:1.2px;color:rgba(255,255,255,.2);padding:12px 13px 6px;font-weight:600}
     .sb-footer{padding:14px 10px;border-top:1px solid rgba(255,255,255,.07)}
-    .sb-footer a{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:7px;color:rgba(255,255,255,.35);font-size:.81rem;cursor:pointer;transition:.15s;text-decoration:none}
+    .sb-footer a{display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:7px;color:rgba(255,255,255,.35);font-size:.81rem;cursor:pointer;transition:.15s;text-decoration:none;min-height:38px}
     .sb-footer a:hover{background:rgba(255,255,255,.05);color:#fff}
+    .sb-footer a.danger:hover{background:rgba(196,30,58,.18);color:#ff6b7a}
     .main-wrap{margin-left:var(--sidebar);width:calc(100% - var(--sidebar));min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
     .top-bar{background:#fff;border-bottom:2px solid var(--border);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 4px rgba(0,0,0,.04)}
     .top-title{font-family:var(--font);font-weight:800;font-size:1rem;color:var(--navy);display:flex;align-items:center;gap:8px}
@@ -128,7 +129,9 @@ function injectSidebar(activePage) {
     .top-badge{background:var(--red3);color:var(--red);font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid rgba(196,30,58,.2)}
     .top-date{font-size:.78rem;color:var(--text3);font-weight:500}
     .page-body{padding:24px 26px;flex:1}
-    .card{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+    .card{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.03);transition:box-shadow .18s,transform .18s}
+    .card.clickable{cursor:pointer}
+    .card.clickable:hover{box-shadow:0 4px 18px rgba(0,0,0,.09);transform:translateY(-2px)}
     .card-head{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:#fafafa}
     .card-head h3{font-weight:800;font-size:.88rem;color:var(--navy);display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.5px}
     .card-body{padding:20px}
@@ -155,9 +158,13 @@ function injectSidebar(activePage) {
     .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
     .table{width:100%;border-collapse:collapse;font-size:.84rem}
     .table th{padding:10px 14px;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);font-weight:700;border-bottom:2px solid var(--border);background:#fafafa}
-    .table td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+    .table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle;min-height:44px}
     .table tr:hover td{background:#fdf6f7}
     .table tr:last-child td{border-bottom:none}
+    .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;border:1.5px solid var(--border);background:#fff;color:var(--text2);cursor:pointer;transition:.15s;font-size:.84rem}
+    .btn-icon:hover{border-color:var(--red);color:var(--red);background:#fff5f6}
+    .btn-icon.danger:hover{border-color:#dc2626;color:#dc2626;background:#fef2f2}
+    .actions-cell{display:flex;align-items:center;gap:6px}
     .empty-state{text-align:center;padding:48px 24px;color:var(--text3)}
     .empty-state i{font-size:2.2rem;display:block;margin-bottom:12px;color:#ddd}
     .empty-state p{font-size:.88rem}
@@ -180,7 +187,7 @@ function injectSidebar(activePage) {
     </nav>
     <div class="sb-footer">
       <a href="../index.html" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> View Site</a>
-      <a onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+      <a onclick="logout()" class="danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
     </div>
   </div>
   <div class="main-wrap">
@@ -227,10 +234,11 @@ function categoryLabel(val, hi = false) {
 }
 
 function statusBadge(status) {
+  const dot = (color) => `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${color};margin-right:5px;flex-shrink:0;"></span>`;
   const map = {
-    published: '<span class="badge badge-green">Published</span>',
-    draft:     '<span class="badge badge-gray">Draft</span>',
-    scheduled: '<span class="badge badge-blue">Scheduled</span>',
+    published: `<span class="badge badge-green" style="display:inline-flex;align-items:center;">${dot('#16a34a')}Published</span>`,
+    draft:     `<span class="badge badge-gray"  style="display:inline-flex;align-items:center;">${dot('#94a3b8')}Draft</span>`,
+    scheduled: `<span class="badge badge-blue"  style="display:inline-flex;align-items:center;">${dot('#1d4ed8')}Scheduled</span>`,
   };
   return map[status] || `<span class="badge badge-gray">${status}</span>`;
 }

@@ -729,26 +729,39 @@ input, select, textarea {
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-md);
-  border-bottom: 2px solid var(--gray-200);
-  padding-bottom: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--gray-200);
+  position: relative;
+}
+
+.section-heading::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 80px;
+  height: 3px;
+  background: var(--red-primary);
+  border-radius: 2px;
 }
 
 .section-title {
   font-family: var(--font-hindi);
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 800;
   color: var(--dark);
   display: flex;
   align-items: center;
   gap: 8px;
   line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
 .section-title::before {
   content: '';
   display: inline-block;
   width: 4px;
-  height: 22px;
+  height: 20px;
   background: var(--red-primary);
   border-radius: 2px;
   flex-shrink: 0;
@@ -771,12 +784,20 @@ input, select, textarea {
   color: var(--red-primary);
   display: flex;
   align-items: center;
-  gap: 4px;
-  transition: gap var(--transition-fast);
+  gap: 5px;
+  transition: all var(--transition-fast);
   white-space: nowrap;
+  padding: 4px 0;
+  touch-action: manipulation;
 }
 
-.section-more:hover { gap: 8px; }
+.section-more:hover {
+  gap: 9px;
+  opacity: 0.85;
+}
+
+.section-more i { transition: transform var(--transition-fast); }
+.section-more:hover i { transform: translateX(3px); }
 
 /* ============================================================
    ARTICLE CARD COMPONENT
@@ -790,28 +811,36 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   position: relative;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 
 .article-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+
+.article-card:focus-within {
+  outline: 2px solid var(--red-primary);
+  outline-offset: 2px;
 }
 
 .article-card-img {
   position: relative;
   overflow: hidden;
   background: var(--gray-100);
+  aspect-ratio: 16 / 9;
 }
 
 .article-card-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--transition-slow);
+  transition: transform 0.28s ease;
 }
 
 .article-card:hover .article-card-img img {
-  transform: scale(1.04);
+  transform: scale(1.05);
 }
 
 .article-card-img .img-placeholder {
@@ -895,11 +924,11 @@ input, select, textarea {
   gap: 3px;
 }
 
-/* Card Size Variants */
-.card-sm .article-card-img { height: 160px; }
-.card-md .article-card-img { height: 200px; }
-.card-lg .article-card-img { height: 260px; }
-.card-xl .article-card-img { height: 340px; }
+/* Card Size Variants — aspect-ratio 16/9 by default; max-height prevents oversized images */
+.card-sm .article-card-img { max-height: 180px; }
+.card-md .article-card-img { max-height: 220px; }
+.card-lg .article-card-img { max-height: 280px; }
+.card-xl .article-card-img { max-height: 360px; }
 
 .card-sm .article-card-headline { font-size: 14px; }
 .card-md .article-card-headline { font-size: 15px; }
@@ -1871,8 +1900,8 @@ input, select, textarea {
 }
 
 .share-btn {
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1882,6 +1911,7 @@ input, select, textarea {
   transition: all var(--transition-fast);
   border: 1px solid var(--gray-200);
   color: var(--gray-600);
+  touch-action: manipulation;
 }
 
 .share-btn:hover { transform: scale(1.1); }
@@ -2207,16 +2237,17 @@ input, select, textarea {
 }
 
 .footer-social a {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   background: rgba(255,255,255,0.08);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--gray-300);
   transition: all var(--transition-fast);
+  touch-action: manipulation;
 }
 
 .footer-social a:hover {
@@ -2601,10 +2632,12 @@ input, select, textarea {
   .mobile-cat-scroll a {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     white-space: nowrap;
-    padding: 5px 13px;
+    padding: 7px 14px;
+    min-height: 36px;
     border-radius: 20px;
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 600;
     font-family: var(--font-hindi);
     color: #333;
@@ -2613,6 +2646,7 @@ input, select, textarea {
     text-decoration: none;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
     flex-shrink: 0;
+    touch-action: manipulation;
   }
 
   .mobile-cat-scroll a:hover,
@@ -2666,6 +2700,80 @@ input, select, textarea {
   .search-results-grid { grid-template-columns: 1fr; }
 
   .scroll-row .article-card { min-width: 180px; }
+}
+
+/* ============================================================
+   ACCESSIBILITY — FOCUS VISIBLE RINGS
+   ============================================================ */
+:focus { outline: none; }
+
+:focus-visible {
+  outline: 2px solid var(--red-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--red-primary);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   BACK TO TOP BUTTON
+   ============================================================ */
+.back-to-top {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: var(--red-primary);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(196,30,58,0.35);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+  transition: opacity var(--transition-mid), transform var(--transition-mid);
+  z-index: 900;
+  touch-action: manipulation;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.back-to-top:hover {
+  background: var(--red-dark);
+  transform: translateY(-2px);
+}
+
+@media (min-width: 769px) {
+  .back-to-top { bottom: 28px; right: 28px; }
+}
+
+/* ============================================================
+   READING PROGRESS BAR
+   ============================================================ */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--red-primary);
+  z-index: 2000;
+  width: 0%;
+  transition: width 0.1s linear;
+  pointer-events: none;
 }
 
 /* ============================================================

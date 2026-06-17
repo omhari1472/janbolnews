@@ -580,6 +580,30 @@
     // Auto-refresh ticker
     const interval = (window.JN_CONFIG && window.JN_CONFIG.tickerRefreshMs) || 60000;
     setInterval(loadTicker, interval);
+
+    // Back to top button
+    const btt = document.createElement('button');
+    btt.className = 'back-to-top';
+    btt.setAttribute('aria-label', 'वापस ऊपर जाएं');
+    btt.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
+    btt.addEventListener('click', function() { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+    document.body.appendChild(btt);
+    window.addEventListener('scroll', function() {
+      btt.classList.toggle('visible', window.scrollY > 400);
+    }, { passive: true });
+
+    // Reading progress bar (only on article pages)
+    if (document.querySelector('.article-detail-wrap')) {
+      const bar = document.createElement('div');
+      bar.className = 'reading-progress';
+      document.body.appendChild(bar);
+      window.addEventListener('scroll', function() {
+        const el = document.querySelector('.article-detail-wrap');
+        if (!el) return;
+        const h = el.getBoundingClientRect().bottom + window.scrollY;
+        bar.style.width = Math.min(100, (window.scrollY / (h - window.innerHeight)) * 100) + '%';
+      }, { passive: true });
+    }
   }
 
   // Run after DOM is ready
