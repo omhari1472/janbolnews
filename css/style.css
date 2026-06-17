@@ -2632,9 +2632,11 @@ input, select, textarea {
 }
 
 /* ── Mobile elements hidden on desktop ── */
-.mobile-datebar,
-.mobile-cat-scroll {
-  display: none;
+@media (min-width: 769px) {
+  .mobile-datebar,
+  .mobile-cat-scroll {
+    display: none;
+  }
 }
 
 /* ============================================================
