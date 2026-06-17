@@ -90,4 +90,13 @@ Route::middleware(['auth:sanctum', 'ability:admin'])->prefix('admin')->group(fun
     // Settings
     Route::get('/settings',                [AdminSettingsController::class, 'index']);
     Route::post('/settings',               [AdminSettingsController::class, 'update']);
+
+    // Trigger scheduled publishing manually
+    Route::post('/articles/publish-scheduled', function() {
+        $count = \App\Models\Article::where('status', 'scheduled')
+            ->whereNotNull('scheduled_at')
+            ->where('scheduled_at', '<=', now())
+            ->update(['status' => 'published', 'published_at' => now()]);
+        return response()->json(['success' => true, 'published' => $count]);
+    });
 });

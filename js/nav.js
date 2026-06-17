@@ -303,7 +303,7 @@
     all.forEach(function(item) {
       const span = document.createElement('a');
       span.className = 'ticker-item hi-text';
-      span.textContent = getLocalText(item, 'title') || item.title || '';
+      span.textContent = (lang === 'hi' ? (item.text_hi || item.title_hi) : (item.text_en || item.title_en)) || item.text_hi || item.title_hi || item.text_en || item.title_en || '';
       span.href = '/article.html?slug=' + encodeURIComponent(item.slug || '');
       track.appendChild(span);
     });

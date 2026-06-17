@@ -47,8 +47,13 @@ class AdminArticleController extends Controller {
         if ($request->hasFile('featured_image')) {
             $data['featured_image'] = $this->uploader->upload($request->file('featured_image'), 'articles');
         }
-        if (!isset($data['published_at']) && ($data['status'] ?? 'draft') === 'published') {
+        $status = $data['status'] ?? 'draft';
+        if ($status === 'published' && !isset($data['published_at'])) {
             $data['published_at'] = now();
+        }
+        if ($status === 'scheduled' && isset($data['scheduled_at'])) {
+            // keep scheduled_at as-is; published_at will be set when auto-published
+            unset($data['published_at']);
         }
 
         $article = Article::create($data);
@@ -68,8 +73,13 @@ class AdminArticleController extends Controller {
             $this->uploader->delete($article->featured_image);
             $data['featured_image'] = $this->uploader->upload($request->file('featured_image'), 'articles');
         }
-        if (isset($data['status']) && $data['status'] === 'published' && !$article->published_at) {
-            $data['published_at'] = now();
+        if (isset($data['status'])) {
+            if ($data['status'] === 'published' && !$article->published_at) {
+                $data['published_at'] = now();
+                $data['scheduled_at'] = null;
+            } elseif ($data['status'] === 'scheduled' && isset($data['scheduled_at'])) {
+                $data['published_at'] = null;
+            }
         }
 
         $article->update($data);
@@ -113,6 +123,7 @@ class AdminArticleController extends Controller {
             'is_breaking'       => $a->is_breaking,
             'views'             => $a->views,
             'published_at'      => $a->published_at?->toIso8601String(),
+            'scheduled_at'      => $a->scheduled_at?->toIso8601String(),
             'created_at'        => $a->created_at?->toIso8601String(),
             'updated_at'        => $a->updated_at?->toIso8601String(),
             'tags'              => $a->relationLoaded('tags') ? $a->tags->pluck('name') : [],

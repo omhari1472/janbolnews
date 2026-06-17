@@ -5,12 +5,13 @@ class Article extends Model {
     protected $fillable = [
         'title_hi','title_en','slug','excerpt_hi','excerpt_en',
         'content_hi','content_en','featured_image','category_id','author_id',
-        'status','language','is_featured','is_breaking','views','published_at',
+        'status','language','is_featured','is_breaking','views','published_at','scheduled_at',
     ];
     protected $casts = [
         'is_featured'  => 'boolean',
         'is_breaking'  => 'boolean',
         'published_at' => 'datetime',
+        'scheduled_at' => 'datetime',
     ];
 
     public function category() { return $this->belongsTo(Category::class); }
