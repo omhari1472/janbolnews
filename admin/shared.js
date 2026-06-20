@@ -34,14 +34,14 @@ function getAllowedCategories() {
 })();
 
 function checkAuth() {
-  if (!getToken()) { window.location.href = 'index.html'; return false; }
+  if (!getToken()) { window.location.href = '/admin'; return false; }
   return true;
 }
 
 function checkSuperAdmin() {
   if (getRole() !== 'super') {
     const perms = getUser()?.permissions || {};
-    const fallback = perms.articles ? 'articles.html' : perms.breaking ? 'breaking.html' : perms.epaper ? 'epaper.html' : 'settings.html';
+    const fallback = perms.articles ? 'articles' : perms.breaking ? 'breaking' : perms.epaper ? 'epaper' : 'settings';
     window.location.href = fallback;
     return false;
   }
@@ -64,7 +64,7 @@ async function logout() {
   try { await apiFetch('/admin/logout', { method: 'POST' }); } catch (_) {}
   localStorage.removeItem('jn_admin_token');
   localStorage.removeItem('jn_admin_user');
-  window.location.href = 'index.html';
+  window.location.href = '/admin';
 }
 
 /**
@@ -128,12 +128,12 @@ function injectSidebar(activePage) {
   const roleLabel = role === 'super' ? 'Super Admin' : 'Editor';
 
   const allNav = [
-    { href: 'dashboard.html', icon: 'fa-gauge-high', label: 'Dashboard', superOnly: true       },
-    { href: 'articles.html',  icon: 'fa-newspaper',  label: 'Articles',     perm: 'articles'   },
-    { href: 'breaking.html',  icon: 'fa-bolt',       label: 'Breaking News',perm: 'breaking'   },
-    { href: 'epaper.html',    icon: 'fa-file-pdf',   label: 'E-Paper',      perm: 'epaper'     },
-    { href: 'users.html',     icon: 'fa-users',      label: 'Users',        superOnly: true    },
-    { href: 'settings.html',  icon: 'fa-gear',       label: 'Settings'                         },
+    { href: 'dashboard', icon: 'fa-gauge-high', label: 'Dashboard', superOnly: true       },
+    { href: 'articles',  icon: 'fa-newspaper',  label: 'Articles',     perm: 'articles'   },
+    { href: 'breaking',  icon: 'fa-bolt',       label: 'Breaking News',perm: 'breaking'   },
+    { href: 'epaper',    icon: 'fa-file-pdf',   label: 'E-Paper',      perm: 'epaper'     },
+    { href: 'users',     icon: 'fa-users',      label: 'Users',        superOnly: true    },
+    { href: 'settings',  icon: 'fa-gear',       label: 'Settings'                         },
   ];
   const nav = allNav.filter(n => {
     if (n.superOnly) return role === 'super';
@@ -244,7 +244,7 @@ function injectSidebar(activePage) {
       ${nav.map(n => `<a href="${n.href}" class="${n.href === activePage ? 'active' : ''}"><i class="fa-solid ${n.icon}"></i> <span>${n.label}</span></a>`).join('')}
     </nav>
     <div class="sb-user-section">
-      <div class="sb-user-card" style="cursor:pointer" onclick="window.location.href='settings.html'" title="Edit profile">
+      <div class="sb-user-card" style="cursor:pointer" onclick="window.location.href='settings'" title="Edit profile">
         <div class="sb-user-avatar" id="sbUserAvatar">${user?.avatar_url ? `<img src="${user.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : initials}</div>
         <div style="flex:1;overflow:hidden">
           <div class="sb-user-name" id="sbUserName">${user?.name || 'Admin'}</div>
@@ -263,7 +263,7 @@ function injectSidebar(activePage) {
       <div class="top-right">
         <span class="top-date" id="topDate"></span>
         <span class="top-badge"><i class="fa-solid fa-circle" style="font-size:.45rem;margin-right:4px;color:var(--red);"></i> LIVE</span>
-        ${hasPermission('articles') ? '<a href="article-edit.html" class="btn btn-red btn-sm"><i class="fa-solid fa-plus"></i> New Article</a>' : ''}
+        ${hasPermission('articles') ? '<a href="article-edit" class="btn btn-red btn-sm"><i class="fa-solid fa-plus"></i> New Article</a>' : ''}
       </div>
     </div>
     <div class="page-body" id="pageBody">`;

@@ -75,7 +75,7 @@
 <script src="shared.js"></script>
 <script>
 checkAuth();
-injectSidebar('articles.html');
+injectSidebar('articles');
 
 const urlParams = new URLSearchParams(window.location.search);
 const articleId = urlParams.get('id');
@@ -122,7 +122,7 @@ function render() {
       <button class="lang-tab ${activeTab==='en'?'active':''}" onclick="setTab('en')">English</button>
       <button class="lang-tab ${activeTab==='both'?'active':''}" onclick="setTab('both')">दोनों</button>
     </div>
-    <a href="articles.html" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Back to Articles</a>
+    <a href="articles" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Back to Articles</a>
   </div>
 
   <div class="edit-layout">

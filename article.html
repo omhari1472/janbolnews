@@ -143,7 +143,7 @@
     nav.innerHTML =
       `<a href="/index.html" class="hi-text">होम</a>
        <span class="sep">›</span>
-       <a href="/category.html?cat=${catSlug}" class="hi-text">${catName}</a>
+       <a href="/category?cat=${catSlug}" class="hi-text">${catName}</a>
        <span class="sep">›</span>
        <span class="current hi-text">${shortTitle}</span>`;
     return nav;
@@ -225,7 +225,7 @@
     header.className = 'article-header';
 
     const catTag = document.createElement('a');
-    catTag.href = '/category.html?cat=' + catSlug;
+    catTag.href = '/category?cat=' + catSlug;
     catTag.className = 'article-category-tag hi-text';
     catTag.textContent = catName;
 
@@ -317,7 +317,7 @@
       tagsDiv.appendChild(tagLabel);
       tags.forEach(function(tag) {
         const chip = document.createElement('a');
-        chip.href = '/search.html?q=' + encodeURIComponent(tag);
+        chip.href = '/search?q=' + encodeURIComponent(tag);
         chip.className = 'tag-chip hi-text';
         chip.textContent = tag;
         tagsDiv.appendChild(chip);
@@ -401,7 +401,7 @@
     el.innerHTML = '';
     window.JN_CONFIG.categories.forEach(function(cat) {
       const a = document.createElement('a');
-      a.href = '/category.html?cat=' + cat.slug;
+      a.href = '/category?cat=' + cat.slug;
       a.className = 'article-list-item hi-text';
       a.style.cssText = 'padding:8px 0;border-bottom:1px solid var(--gray-100);display:flex;justify-content:space-between;align-items:center;';
       a.innerHTML = `<span>${getLang() === 'hi' ? cat.hi : cat.en}</span> <span style="color:var(--red-primary);font-size:13px;">›</span>`;

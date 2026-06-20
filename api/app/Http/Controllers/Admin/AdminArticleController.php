@@ -5,6 +5,7 @@ use App\Traits\ApiResponse;
 use App\Models\Article;
 use App\Models\Author;
 use App\Models\Category;
+use App\Models\User;
 use App\Services\FileUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -64,7 +65,7 @@ class AdminArticleController extends Controller {
         $slug = $this->uniqueSlug($request->title_hi);
         $data = $request->except(['featured_image','author_name']) + ['slug' => $slug];
         if ($request->filled('author_name')) {
-            $data['author_id'] = Author::firstOrCreate(['name' => trim($request->author_name)])->id;
+            $data['author_id'] = $this->resolveAuthor(trim($request->author_name), $request->user())->id;
         }
 
         if ($request->hasFile('featured_image')) {
@@ -94,7 +95,7 @@ class AdminArticleController extends Controller {
 
         $data = $request->except(['featured_image','_method','author_name']);
         if ($request->filled('author_name')) {
-            $data['author_id'] = Author::firstOrCreate(['name' => trim($request->author_name)])->id;
+            $data['author_id'] = $this->resolveAuthor(trim($request->author_name), $request->user())->id;
         }
         if ($request->hasFile('featured_image')) {
             $this->uploader->delete($article->featured_image);
@@ -119,6 +120,19 @@ class AdminArticleController extends Controller {
         $this->uploader->delete($article->featured_image);
         $article->delete();
         return $this->successResponse([], 'Article deleted');
+    }
+
+    private function resolveAuthor(string $name, \App\Models\User $requestUser): Author {
+        $author = Author::firstOrCreate(['name' => $name]);
+        if (!$author->avatar_path) {
+            $user = $requestUser->name === $name
+                ? $requestUser
+                : User::where('name', $name)->first();
+            if ($user?->avatar_path) {
+                $author->update(['avatar_path' => $user->avatar_path]);
+            }
+        }
+        return $author;
     }
 
     private function uniqueSlug(string $title): string {

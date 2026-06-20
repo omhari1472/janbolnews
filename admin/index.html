@@ -73,7 +73,7 @@ body::after{content:'';position:absolute;top:-40%;left:-20%;width:60%;height:120
 const _isLocal = ['localhost','127.0.0.1'].includes(window.location.hostname);
 const _API = _isLocal ? 'http://localhost:8000/api' : '/api';
 
-if (localStorage.getItem('jn_admin_token')) window.location.href = 'dashboard.html';
+if (localStorage.getItem('jn_admin_token')) window.location.href = '/admin/dashboard';
 
 async function login(e) {
   e.preventDefault();
@@ -98,7 +98,7 @@ async function login(e) {
     if (data.success && token) {
       localStorage.setItem('jn_admin_token', token);
       localStorage.setItem('jn_admin_user', JSON.stringify(data.data.user));
-      window.location.href = 'dashboard.html';
+      window.location.href = '/admin/dashboard';
     } else {
       errMsg.textContent = data.message || 'Invalid credentials. Please try again.';
       errEl.style.display = 'flex';

@@ -345,7 +345,7 @@
     el.innerHTML = '';
     window.JN_CONFIG.categories.filter(c => c.slug !== currentCat).forEach(function(cat) {
       const a = document.createElement('a');
-      a.href = '/category.html?cat=' + cat.slug;
+      a.href = '/category?cat=' + cat.slug;
       a.className = 'article-list-item hi-text';
       a.style.cssText = 'padding:8px 0;border-bottom:1px solid var(--gray-100);display:flex;justify-content:space-between;align-items:center;';
       a.innerHTML = `<span>${getLang() === 'hi' ? cat.hi : cat.en}</span><span style="color:var(--red-primary)">›</span>`;

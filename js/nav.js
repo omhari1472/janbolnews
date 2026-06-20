@@ -14,15 +14,15 @@
     const lang = (window.getLang && window.getLang()) || 'hi';
 
     const catLinks = cats.slice(0, 8).map(function(cat) {
-      return `<a href="/category.html?cat=${cat.slug}" data-cat="${cat.slug}" class="hi-text">${lang === 'hi' ? cat.hi : cat.en}</a>`;
+      return `<a href="/category?cat=${cat.slug}" data-cat="${cat.slug}" class="hi-text">${lang === 'hi' ? cat.hi : cat.en}</a>`;
     }).join('');
 
     const drawerLinks = cats.map(function(cat) {
-      return `<a href="/category.html?cat=${cat.slug}" class="hi-text">${lang === 'hi' ? cat.hi : cat.en}</a>`;
+      return `<a href="/category?cat=${cat.slug}" class="hi-text">${lang === 'hi' ? cat.hi : cat.en}</a>`;
     }).join('');
 
     const catPills = cats.map(function(cat) {
-      return `<a href="/category.html?cat=${cat.slug}" class="hi-text" data-cat="${cat.slug}">${lang === 'hi' ? cat.hi : cat.en}</a>`;
+      return `<a href="/category?cat=${cat.slug}" class="hi-text" data-cat="${cat.slug}">${lang === 'hi' ? cat.hi : cat.en}</a>`;
     }).join('');
 
     return `
@@ -151,11 +151,11 @@
     const lang = (window.getLang && window.getLang()) || 'hi';
 
     const catLinks1 = cats.slice(0, 5).map(function(cat) {
-      return `<a href="/category.html?cat=${cat.slug}" class="hi-text">${lang === 'hi' ? cat.hi : cat.en}</a>`;
+      return `<a href="/category?cat=${cat.slug}" class="hi-text">${lang === 'hi' ? cat.hi : cat.en}</a>`;
     }).join('');
 
     const catLinks2 = cats.slice(5, 10).map(function(cat) {
-      return `<a href="/category.html?cat=${cat.slug}" class="hi-text">${lang === 'hi' ? cat.hi : cat.en}</a>`;
+      return `<a href="/category?cat=${cat.slug}" class="hi-text">${lang === 'hi' ? cat.hi : cat.en}</a>`;
     }).join('');
 
     const year = new Date().getFullYear();
@@ -307,7 +307,7 @@
     const lang = window.getLang();
     window.JN_CONFIG.editions.slice(0, 5).forEach(function(ed) {
       const a = document.createElement('a');
-      a.href = '/category.html?edition=' + ed.slug;
+      a.href = '/category?edition=' + ed.slug;
       a.className = 'hi-text';
       a.textContent = lang === 'hi' ? ed.hi : ed.en;
       el.appendChild(a);
@@ -330,7 +330,7 @@
       const span = document.createElement('a');
       span.className = 'ticker-item hi-text';
       span.textContent = (lang === 'hi' ? (item.text_hi || item.title_hi) : (item.text_en || item.title_en)) || item.text_hi || item.title_hi || item.text_en || item.title_en || '';
-      span.href = '/article.html?slug=' + encodeURIComponent(item.slug || '');
+      span.href = '/article?slug=' + encodeURIComponent(item.slug || '');
       track.appendChild(span);
     });
 
@@ -397,7 +397,7 @@
     function doSearch() {
       const q = input ? input.value.trim() : '';
       if (q) {
-        window.location.href = '/search.html?q=' + encodeURIComponent(q);
+        window.location.href = '/search?q=' + encodeURIComponent(q);
       }
     }
 
@@ -437,8 +437,8 @@
 
     const tabs = [
       { label: 'होम',       labelEn: 'HOME',    href: '/index.html',   icon: homeIcon(),     active: isHome    },
-      { label: 'ताज़ा',     labelEn: 'LATEST',  href: '/category.html?cat=politics', icon: latestIcon(), active: false },
-      { label: 'ब्रेकिंग', labelEn: 'BREAKING', href: '/search.html?q=breaking',     icon: breakIcon(),  active: false },
+      { label: 'ताज़ा',     labelEn: 'LATEST',  href: '/category?cat=politics', icon: latestIcon(), active: false },
+      { label: 'ब्रेकिंग', labelEn: 'BREAKING', href: '/search?q=breaking',     icon: breakIcon(),  active: false },
       { label: 'ई-पेपर',   labelEn: 'E-PAPER', href: '/epaper.html',  icon: epaperIcon(),   active: isEpaper  },
       { label: 'खोजें',    labelEn: 'SEARCH',  href: '/search.html',  icon: searchIconSvg(),active: isSearch  },
     ];

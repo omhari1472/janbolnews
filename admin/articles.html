@@ -46,7 +46,7 @@ input[type="checkbox"]{width:15px;height:15px;cursor:pointer;accent-color:#C41E3
 <script src="shared.js"></script>
 <script>
 checkAuth();
-injectSidebar('articles.html');
+injectSidebar('articles');
 document.getElementById('pageTitle').textContent = 'Articles';
 
 let page = 1;
@@ -64,7 +64,7 @@ function render() {
   document.getElementById('pageBody').innerHTML = `
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
     <div style="font-size:.88rem;color:#666;" id="resultCount">Loading…</div>
-    <a href="article-edit.html" class="btn btn-red"><i class="fa-solid fa-plus"></i> New Article</a>
+    <a href="article-edit" class="btn btn-red"><i class="fa-solid fa-plus"></i> New Article</a>
   </div>
 
   <div class="filter-bar">
@@ -170,7 +170,7 @@ async function loadArticles() {
     renderPageBtns();
 
     if (!articles.length) {
-      tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><i class="fa-solid fa-newspaper"></i><p>No articles found. <a href="article-edit.html" style="color:#C41E3A;font-weight:700;">Create one →</a></p></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty"><i class="fa-solid fa-newspaper"></i><p>No articles found. <a href="article-edit" style="color:#C41E3A;font-weight:700;">Create one →</a></p></div></td></tr>`;
       return;
     }
 
@@ -191,7 +191,7 @@ async function loadArticles() {
         <td style="font-size:.78rem;color:#999;white-space:nowrap;">${dateStr}</td>
         <td>
           <div class="actions-cell">
-            <a href="article-edit.html?id=${a.id}" class="btn-icon" title="Edit"><i class="fa-solid fa-pen"></i></a>
+            <a href="article-edit?id=${a.id}" class="btn-icon" title="Edit"><i class="fa-solid fa-pen"></i></a>
             ${getRole() === 'super' ? `<button class="btn-icon danger" title="Delete" onclick="deleteArticle(${a.id})"><i class="fa-solid fa-trash"></i></button>` : ''}
           </div>
         </td>

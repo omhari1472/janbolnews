@@ -80,7 +80,7 @@
           प्रमुख समाचार
           <span class="en-sub">TOP STORIES</span>
         </h2>
-        <a href="/category.html?cat=rashtriya" class="section-more hi-text">और पढ़ें →</a>
+        <a href="/category?cat=rashtriya" class="section-more hi-text">और पढ़ें →</a>
       </div>
       <div id="top-stories-grid" class="top-stories-grid" aria-live="polite">
         <!-- Skeletons -->
@@ -151,7 +151,7 @@
 
       // Main hero
       const mainDiv = document.createElement('a');
-      mainDiv.href = '/article.html?slug=' + encodeURIComponent(main.slug || '');
+      mainDiv.href = '/article?slug=' + encodeURIComponent(main.slug || '');
       mainDiv.className = 'hero-main';
       mainDiv.setAttribute('aria-label', getLocalText(main, 'title') || main.title);
 
@@ -198,7 +198,7 @@
 
       [side1, side2].filter(Boolean).forEach(function(art) {
         const item = document.createElement('a');
-        item.href = '/article.html?slug=' + encodeURIComponent(art.slug || '');
+        item.href = '/article?slug=' + encodeURIComponent(art.slug || '');
         item.className = 'hero-side-item';
 
         const imgDiv = document.createElement('div');
@@ -286,7 +286,7 @@
       titleEl.id = 'cat-heading-' + catSlug;
       titleEl.innerHTML = catName + '<span class="en-sub">' + catSlug.toUpperCase() + '</span>';
       const moreLink = document.createElement('a');
-      moreLink.href = '/category.html?cat=' + catSlug;
+      moreLink.href = '/category?cat=' + catSlug;
       moreLink.className = 'section-more hi-text';
       moreLink.textContent = 'और पढ़ें →';
       heading.appendChild(titleEl);

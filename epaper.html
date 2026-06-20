@@ -395,7 +395,7 @@
   }
 
   function articleCardHTML(a, isLead) {
-    const url = `/article.html?slug=${encodeURIComponent(a.slug)}`;
+    const url = `/article?slug=${encodeURIComponent(a.slug)}`;
     const imgHTML = a.featured_image_url
       ? `<img class="ep-art-img" src="${a.featured_image_url}" alt="${a.title_hi || ''}" loading="lazy" onerror="this.style.display='none'">`
       : (isLead ? '<div style="height:160px;background:#f0f0f0;border-radius:4px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;color:#ccc;"><i class="fa-solid fa-image fa-2x"></i></div>' : '');

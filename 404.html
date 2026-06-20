@@ -78,7 +78,7 @@
       const lang = getLang();
       window.JN_CONFIG.categories.slice(0, 8).forEach(function(cat) {
         const chip = document.createElement('a');
-        chip.href = '/category.html?cat=' + cat.slug;
+        chip.href = '/category?cat=' + cat.slug;
         chip.className = 'tag-chip hi-text';
         chip.textContent = lang === 'hi' ? cat.hi : cat.en;
         catsEl.appendChild(chip);

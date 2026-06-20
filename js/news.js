@@ -208,7 +208,7 @@
     const views    = article.views || article.view_count || 0;
     const slug     = article.slug || '';
     const img      = article.featured_image || article.image || '';
-    const href     = '/article.html?slug=' + encodeURIComponent(slug);
+    const href     = '/article?slug=' + encodeURIComponent(slug);
 
     const card = document.createElement('a');
     card.href  = href;
@@ -294,7 +294,7 @@
     const date  = formatDate(article.published_at || article.created_at);
     const slug  = article.slug || '';
     const img   = article.featured_image || article.image || '';
-    const href  = '/article.html?slug=' + encodeURIComponent(slug);
+    const href  = '/article?slug=' + encodeURIComponent(slug);
 
     if (rank !== undefined) {
       const item = document.createElement('a');
