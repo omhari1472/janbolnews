@@ -203,7 +203,8 @@
     const excerpt  = getLocalText(article, 'excerpt') || article.excerpt || '';
     const category = getLocalText(article, 'category_name') || getCategoryName(article.category_slug) || article.category_name || '';
     const date     = formatDate(article.published_at || article.created_at);
-    const author   = article.author_name || '';
+    const author       = article.author_name || '';
+    const authorAvatar = article.author_avatar_url || null;
     const views    = article.views || article.view_count || 0;
     const slug     = article.slug || '';
     const img      = article.featured_image || article.image || '';
@@ -262,7 +263,11 @@
     if (author) {
       const authorSpan = document.createElement('span');
       authorSpan.className = 'meta-author hi-text';
-      authorSpan.innerHTML = '✍ ' + author;
+      if (authorAvatar) {
+        authorSpan.innerHTML = `<img src="${authorAvatar}" alt="${author}" style="width:18px;height:18px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:4px;" onerror="this.style.display='none'"> ${author}`;
+      } else {
+        authorSpan.innerHTML = '✍ ' + author;
+      }
       meta.appendChild(authorSpan);
     }
 

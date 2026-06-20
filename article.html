@@ -185,7 +185,8 @@
     const content  = getLocalText(article, 'content') || article.content || '';
     const catSlug  = article.category_slug || '';
     const catName  = getCategoryName(catSlug) || article.category_name || '';
-    const author   = article.author_name || 'जनबोल न्यूज़';
+    const author      = article.author_name || 'जनबोल न्यूज़';
+    const authorAvatar = article.author_avatar_url || null;
     const date     = formatDate(article.published_at || article.created_at);
     const views    = article.views || article.view_count || 0;
     const img      = article.featured_image || article.image || '';
@@ -248,8 +249,13 @@
 
     const authorEl = document.createElement('div');
     authorEl.className = 'article-author';
+    const initials = author.trim().split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
     authorEl.innerHTML = `
-      <div class="author-avatar">✍</div>
+      <div class="author-avatar">
+        ${authorAvatar
+          ? `<img src="${authorAvatar}" alt="${author}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent='${initials}'">`
+          : `<span style="font-size:12px;font-weight:700;color:var(--primary)">${initials}</span>`}
+      </div>
       <div>
         <div class="author-name hi-text">${author}</div>
       </div>
