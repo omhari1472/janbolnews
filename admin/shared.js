@@ -3,6 +3,8 @@ const isLocal = ['localhost','127.0.0.1'].includes(window.location.hostname);
 const API_BASE = isLocal ? 'http://localhost:8000/api' : '/api';
 
 const getToken = () => localStorage.getItem('jn_admin_token') || '';
+const getUser  = () => { try { return JSON.parse(localStorage.getItem('jn_admin_user') || 'null'); } catch { return null; } };
+const getRole  = () => getUser()?.role || 'editor';
 
 // Inject Noto Sans Devanagari font
 (function injectFonts() {
@@ -21,9 +23,27 @@ function checkAuth() {
   return true;
 }
 
+function checkSuperAdmin() {
+  if (getRole() !== 'super') { window.location.href = 'dashboard.html'; return false; }
+  return true;
+}
+
+async function syncUser() {
+  try {
+    const data = await apiFetch('/admin/me');
+    if (data.success && data.data) {
+      const u = data.data;
+      localStorage.setItem('jn_admin_user', JSON.stringify({ id: u.id, name: u.name, email: u.email, role: u.role }));
+      const nameEl = document.getElementById('sbUserName');
+      if (nameEl) nameEl.textContent = u.name;
+    }
+  } catch (_) {}
+}
+
 async function logout() {
   try { await apiFetch('/admin/logout', { method: 'POST' }); } catch (_) {}
   localStorage.removeItem('jn_admin_token');
+  localStorage.removeItem('jn_admin_user');
   window.location.href = 'index.html';
 }
 
@@ -82,13 +102,20 @@ function timeAgo(dateStr) {
 
 // Inject sidebar
 function injectSidebar(activePage) {
-  const nav = [
-    { href: 'dashboard.html',     icon: 'fa-gauge-high',        label: 'Dashboard',       labelHi: 'डैशबोर्ड' },
-    { href: 'articles.html',      icon: 'fa-newspaper',         label: 'Articles',        labelHi: 'समाचार' },
-    { href: 'breaking.html',      icon: 'fa-bolt',              label: 'Breaking News',   labelHi: 'ब्रेकिंग न्यूज़' },
-    { href: 'epaper.html',        icon: 'fa-file-pdf',          label: 'E-Paper',         labelHi: 'ई-पेपर' },
-    { href: 'settings.html',      icon: 'fa-gear',              label: 'Settings',        labelHi: 'सेटिंग्स' },
+  const role = getRole();
+  const user = getUser();
+  const initials = (user?.name || 'A').split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+  const roleLabel = role === 'super' ? 'Super Admin' : 'Editor';
+
+  const allNav = [
+    { href: 'dashboard.html',     icon: 'fa-gauge-high',   label: 'Dashboard'    },
+    { href: 'articles.html',      icon: 'fa-newspaper',    label: 'Articles'     },
+    { href: 'breaking.html',      icon: 'fa-bolt',         label: 'Breaking News'},
+    { href: 'epaper.html',        icon: 'fa-file-pdf',     label: 'E-Paper'      },
+    { href: 'users.html',         icon: 'fa-users',        label: 'Users',         superOnly: true },
+    { href: 'settings.html',      icon: 'fa-gear',         label: 'Settings',      superOnly: true },
   ];
+  const nav = allNav.filter(n => !n.superOnly || role === 'super');
 
   const html = `
   <style>
@@ -169,6 +196,13 @@ function injectSidebar(activePage) {
     .empty-state i{font-size:2.2rem;display:block;margin-bottom:12px;color:#ddd}
     .empty-state p{font-size:.88rem}
     .hindi{font-family:var(--font-hi)}
+    .sb-user-section{padding:10px 10px 12px;border-top:1px solid rgba(255,255,255,.07)}
+    .sb-user-card{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;background:rgba(255,255,255,.04)}
+    .sb-user-avatar{width:34px;height:34px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;letter-spacing:.5px}
+    .sb-user-name{font-size:.78rem;font-weight:600;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+    .sb-user-role-badge{display:inline-block;font-size:.58rem;text-transform:uppercase;letter-spacing:.7px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:3px}
+    .sb-user-role-badge.super{background:rgba(196,30,58,.35);color:#ff9bb3}
+    .sb-user-role-badge.editor{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4)}
     @media(max-width:900px){.sidebar{transform:translateX(-100%)}.main-wrap{margin-left:0}.grid-4{grid-template-columns:1fr 1fr}}
   </style>
   <div class="sidebar">
@@ -185,6 +219,15 @@ function injectSidebar(activePage) {
       <div class="sb-nav-label">Main</div>
       ${nav.map(n => `<a href="${n.href}" class="${n.href === activePage ? 'active' : ''}"><i class="fa-solid ${n.icon}"></i> <span>${n.label}</span></a>`).join('')}
     </nav>
+    <div class="sb-user-section">
+      <div class="sb-user-card">
+        <div class="sb-user-avatar">${initials}</div>
+        <div style="flex:1;overflow:hidden">
+          <div class="sb-user-name" id="sbUserName">${user?.name || 'Admin'}</div>
+          <span class="sb-user-role-badge ${role}">${roleLabel}</span>
+        </div>
+      </div>
+    </div>
     <div class="sb-footer">
       <a href="../index.html" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> View Site</a>
       <a onclick="logout()" class="danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
@@ -203,6 +246,9 @@ function injectSidebar(activePage) {
 
   document.body.insertAdjacentHTML('afterbegin', html);
   document.body.insertAdjacentHTML('beforeend', '</div></div>');
+
+  // Silently refresh user data from API
+  syncUser();
 
   // Set date
   const dateEl = document.getElementById('topDate');

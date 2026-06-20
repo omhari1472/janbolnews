@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdminBreakingController;
 use App\Http\Controllers\Admin\AdminAuthorController;
 use App\Http\Controllers\Admin\AdminEpaperController;
 use App\Http\Controllers\Admin\AdminSettingsController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Public\PublicArticleController;
 use App\Http\Controllers\Public\PublicCategoryController;
 use App\Http\Controllers\Public\PublicBreakingController;
@@ -98,4 +99,14 @@ Route::middleware(['auth:sanctum', 'ability:admin'])->prefix('admin')->group(fun
     Route::get('/settings',                [AdminSettingsController::class, 'index']);
     Route::post('/settings',               [AdminSettingsController::class, 'update']);
 
+});
+
+/* ══════════════════════════════════════════
+   SUPER ADMIN ONLY
+══════════════════════════════════════════ */
+Route::middleware(['auth:sanctum', 'ability:admin', 'superadmin'])->prefix('admin')->group(function () {
+    Route::get('/users',             [AdminUserController::class, 'index']);
+    Route::post('/users',            [AdminUserController::class, 'store']);
+    Route::put('/users/{user}',      [AdminUserController::class, 'update']);
+    Route::delete('/users/{user}',   [AdminUserController::class, 'destroy']);
 });

@@ -13,9 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: ['api/*']);
         $middleware->alias([
-            'admin'    => \App\Http\Middleware\AdminMiddleware::class,
-            'ability'  => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
-            'abilities'=> \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
+            'admin'      => \App\Http\Middleware\AdminMiddleware::class,
+            'superadmin' => \App\Http\Middleware\SuperAdminMiddleware::class,
+            'ability'    => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+            'abilities'  => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {})->create();

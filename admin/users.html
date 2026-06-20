@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Users — Janbolnews Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.tbl-wrap{background:#fff;border:1px solid #e5e5e5;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.table{width:100%;border-collapse:collapse;font-size:.83rem}
+.table th{padding:10px 14px;text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.6px;color:#999;font-weight:700;border-bottom:2px solid #f0f0f0;background:#fafafa;white-space:nowrap}
+.table td{padding:11px 14px;border-bottom:1px solid #f5f5f5;color:#333;vertical-align:middle}
+.table tr:hover td{background:#fdf6f7}
+.table tr:last-child td{border-bottom:none}
+.user-cell{display:flex;align-items:center;gap:10px}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:#C41E3A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:800;flex-shrink:0;letter-spacing:.5px}
+.user-name{font-weight:700;color:#1a1a1a;font-size:.84rem}
+.user-email{font-size:.76rem;color:#888;margin-top:1px}
+.actions-cell{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-icon{width:34px;height:34px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:.82rem;cursor:pointer;border:1.5px solid #e5e5e5;background:#fff;color:#555;transition:.15s;text-decoration:none}
+.btn-icon:hover{border-color:#C41E3A;color:#C41E3A;background:#fff5f6}
+.btn-icon.danger:hover{background:#fef2f2;border-color:#dc2626;color:#dc2626}
+.btn-icon:disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+.empty{text-align:center;padding:56px;color:#bbb}
+.empty i{font-size:2.5rem;display:block;margin-bottom:12px;color:#e5e5e5}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:500px;box-shadow:0 24px 80px rgba(0,0,0,.25);overflow:hidden;animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.modal-head{padding:18px 22px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;background:#fafafa}
+.modal-head h3{font-weight:800;font-size:.92rem;color:#1a1a1a;display:flex;align-items:center;gap:8px}
+.modal-head h3 i{color:#C41E3A}
+.modal-close{width:30px;height:30px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#999;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:.15s}
+.modal-close:hover{background:#f0f0f0;color:#333}
+.modal-body{padding:22px}
+.modal-foot{padding:14px 22px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:10px;background:#fafafa}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#555;margin-bottom:5px}
+.form-group input,.form-group select{width:100%;padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:7px;font-size:.88rem;font-family:'Inter',sans-serif;outline:none;transition:.2s;background:#fff;color:#333}
+.form-group input:focus,.form-group select:focus{border-color:#C41E3A;box-shadow:0 0 0 3px rgba(196,30,58,.07)}
+.form-group .hint{font-size:.72rem;color:#aaa;margin-top:4px}
+.form-err{background:#fef2f2;color:#dc2626;padding:10px 14px;border-radius:7px;font-size:.82rem;margin-bottom:14px;display:none;border-left:3px solid #dc2626}
+</style>
+</head>
+<body>
+<script src="shared.js"></script>
+<script>
+checkAuth();
+checkSuperAdmin();
+injectSidebar('users.html');
+document.getElementById('pageTitle').textContent = 'User Management';
+
+let editingId = null;
+
+function render() {
+  document.getElementById('pageBody').innerHTML = `
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <div style="font-size:.88rem;color:#666;" id="resultCount">Loading…</div>
+    <button class="btn btn-red" onclick="openCreate()"><i class="fa-solid fa-plus"></i> Create User</button>
+  </div>
+
+  <div class="tbl-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="usersTbody"><tr><td colspan="5" class="empty"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.2rem;"></i></td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Create / Edit Modal -->
+  <div class="modal-overlay" id="userModal" onclick="modalOverlayClick(event)">
+    <div class="modal">
+      <div class="modal-head">
+        <h3><i class="fa-solid fa-user-gear"></i> <span id="modalTitle">Create User</span></h3>
+        <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-err" id="formErr"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="fName" placeholder="e.g. Rajesh Sharma" required>
+          </div>
+          <div class="form-group">
+            <label>Email Address *</label>
+            <input type="email" id="fEmail" placeholder="admin@janbolnews.com" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Role *</label>
+            <select id="fRole">
+              <option value="editor">Editor</option>
+              <option value="super">Super Admin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status *</label>
+            <select id="fStatus">
+              <option value="active">Active</option>
+              <option value="disabled">Disabled</option>
+            </select>
+          </div>
+        </div>
+        <div id="pwdSection">
+          <div class="form-row">
+            <div class="form-group">
+              <label id="pwdLabel">Password *</label>
+              <input type="password" id="fPassword" placeholder="Min 8 characters" autocomplete="new-password">
+            </div>
+            <div class="form-group">
+              <label>Confirm Password</label>
+              <input type="password" id="fPasswordConfirm" placeholder="Repeat password">
+            </div>
+          </div>
+          <div class="hint" id="pwdHint" style="font-size:.72rem;color:#aaa;margin-top:-8px;margin-bottom:14px;"></div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-red" id="saveBtn" onclick="saveUser()"><i class="fa-solid fa-floppy-disk"></i> Save User</button>
+      </div>
+    </div>
+  </div>`;
+
+  loadUsers();
+}
+
+async function loadUsers() {
+  const tbody = document.getElementById('usersTbody');
+  try {
+    const data = await apiFetch('/admin/users');
+    const users = data.data || [];
+    document.getElementById('resultCount').textContent = `${users.length} user${users.length !== 1 ? 's' : ''}`;
+    if (!users.length) {
+      tbody.innerHTML = `<tr><td colspan="5" class="empty"><i class="fa-solid fa-users"></i><p>No users found.</p></td></tr>`;
+      return;
+    }
+    const me = getUser();
+    tbody.innerHTML = users.map(u => {
+      const initials = u.name.split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase();
+      const roleBadge = u.role === 'super'
+        ? `<span class="badge badge-red"><i class="fa-solid fa-shield-halved" style="margin-right:4px;font-size:.6rem;"></i>Super Admin</span>`
+        : `<span class="badge badge-gray"><i class="fa-solid fa-pen-nib" style="margin-right:4px;font-size:.6rem;"></i>Editor</span>`;
+      const statusBadgeHtml = u.status === 'active'
+        ? `<span class="badge badge-green"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#16a34a;margin-right:5px;"></span>Active</span>`
+        : `<span class="badge badge-gray"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#94a3b8;margin-right:5px;"></span>Disabled</span>`;
+      const isSelf = me && me.id === u.id;
+      return `<tr>
+        <td>
+          <div class="user-cell">
+            <div class="user-avatar" style="background:${avatarColor(u.name)}">${initials}</div>
+            <div>
+              <div class="user-name">${u.name}${isSelf ? ' <span style="font-size:.65rem;color:#C41E3A;font-weight:600;">(you)</span>' : ''}</div>
+              <div class="user-email">${u.email}</div>
+            </div>
+          </div>
+        </td>
+        <td>${roleBadge}</td>
+        <td>${statusBadgeHtml}</td>
+        <td style="font-size:.78rem;color:#999;white-space:nowrap;">${formatDate(u.created_at)}</td>
+        <td>
+          <div class="actions-cell">
+            <button class="btn-icon" title="Edit" onclick='openEdit(${JSON.stringify(u)})'><i class="fa-solid fa-pen"></i></button>
+            <button class="btn-icon danger" title="Delete" onclick="deleteUser(${u.id},'${u.name.replace(/'/g, "\\'")}')" ${isSelf ? 'disabled title="Cannot delete your own account"' : ''}><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty"><i class="fa-solid fa-triangle-exclamation" style="color:#C41E3A;"></i><p>Error loading users.</p></td></tr>`;
+  }
+}
+
+function avatarColor(name) {
+  const colors = ['#C41E3A','#1d4ed8','#16a34a','#7c3aed','#d97706','#0891b2'];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+}
+
+function openCreate() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Create User';
+  document.getElementById('fName').value = '';
+  document.getElementById('fEmail').value = '';
+  document.getElementById('fRole').value = 'editor';
+  document.getElementById('fStatus').value = 'active';
+  document.getElementById('fPassword').value = '';
+  document.getElementById('fPasswordConfirm').value = '';
+  document.getElementById('pwdLabel').textContent = 'Password *';
+  document.getElementById('pwdHint').textContent = '';
+  document.getElementById('formErr').style.display = 'none';
+  document.getElementById('userModal').classList.add('open');
+  document.getElementById('fName').focus();
+}
+
+function openEdit(u) {
+  editingId = u.id;
+  document.getElementById('modalTitle').textContent = 'Edit User';
+  document.getElementById('fName').value = u.name;
+  document.getElementById('fEmail').value = u.email;
+  document.getElementById('fRole').value = u.role;
+  document.getElementById('fStatus').value = u.status;
+  document.getElementById('fPassword').value = '';
+  document.getElementById('fPasswordConfirm').value = '';
+  document.getElementById('pwdLabel').textContent = 'New Password';
+  document.getElementById('pwdHint').textContent = 'Leave blank to keep current password';
+  document.getElementById('formErr').style.display = 'none';
+  document.getElementById('userModal').classList.add('open');
+  document.getElementById('fName').focus();
+}
+
+function closeModal() {
+  document.getElementById('userModal').classList.remove('open');
+}
+
+function modalOverlayClick(e) {
+  if (e.target === document.getElementById('userModal')) closeModal();
+}
+
+async function saveUser() {
+  const btn = document.getElementById('saveBtn');
+  const errEl = document.getElementById('formErr');
+  const name = document.getElementById('fName').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
+  const role = document.getElementById('fRole').value;
+  const status = document.getElementById('fStatus').value;
+  const password = document.getElementById('fPassword').value;
+  const passwordConfirm = document.getElementById('fPasswordConfirm').value;
+
+  errEl.style.display = 'none';
+
+  if (!name || !email) { errEl.textContent = 'Name and email are required.'; errEl.style.display = 'block'; return; }
+  if (!editingId && !password) { errEl.textContent = 'Password is required for new users.'; errEl.style.display = 'block'; return; }
+  if (password && password !== passwordConfirm) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+  if (password && password.length < 8) { errEl.textContent = 'Password must be at least 8 characters.'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+
+  const body = { name, email, role, status };
+  if (password) { body.password = password; body.password_confirmation = passwordConfirm; }
+  if (!editingId) { body.password_confirmation = passwordConfirm; }
+
+  try {
+    const url = editingId ? `/admin/users/${editingId}` : '/admin/users';
+    const method = editingId ? 'PUT' : 'POST';
+    const data = await apiFetch(url, { method, body: JSON.stringify(body) });
+    if (data.success) {
+      toast(editingId ? 'User updated' : 'User created');
+      closeModal();
+      loadUsers();
+    } else {
+      const msg = data.errors ? Object.values(data.errors).flat().join(' ') : (data.message || 'Save failed');
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+  } catch {
+    errEl.textContent = 'Error saving user. Please try again.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save User';
+  }
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return;
+  try {
+    const data = await apiFetch(`/admin/users/${id}`, { method: 'DELETE' });
+    if (data.success) { toast('User deleted'); loadUsers(); }
+    else toast(data.message || 'Delete failed', 'error');
+  } catch { toast('Error deleting user', 'error'); }
+}
+
+render();
+</script>
+</body>
+</html>

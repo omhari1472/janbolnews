@@ -97,6 +97,7 @@ async function login(e) {
     const token = data.data?.access_token;
     if (data.success && token) {
       localStorage.setItem('jn_admin_token', token);
+      localStorage.setItem('jn_admin_user', JSON.stringify(data.data.user));
       window.location.href = 'dashboard.html';
     } else {
       errMsg.textContent = data.message || 'Invalid credentials. Please try again.';
