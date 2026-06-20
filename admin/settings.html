@@ -48,6 +48,24 @@
 .section-group{margin-bottom:22px}
 .section-group[data-section]{display:none}
 .section-group.active{display:block}
+/* Font picker */
+.font-section-label{font-weight:700;font-size:.8rem;color:#333;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.font-section-label i{color:#C41E3A}
+.font-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.font-card{border:1.5px solid #e5e5e5;border-radius:9px;padding:13px 12px 11px;cursor:pointer;transition:.15s;position:relative;background:#fff;user-select:none}
+.font-card:hover{border-color:#C41E3A;background:#fff8f9}
+.font-card.selected{border-color:#C41E3A;background:#fff8f9}
+.font-card-sample{font-size:1.1rem;font-weight:700;color:#1a1a1a;margin-bottom:5px;line-height:1.3;min-height:26px}
+.font-card-name{font-size:.74rem;font-weight:700;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.font-card-cat{font-size:.66rem;color:#bbb;margin-top:1px}
+.font-card-check{position:absolute;top:7px;right:7px;width:17px;height:17px;background:#C41E3A;border-radius:50%;display:none;align-items:center;justify-content:center}
+.font-card.selected .font-card-check{display:flex}
+.font-card-check i{color:#fff;font-size:.46rem}
+.font-preview-box{background:#f8f8f8;border:1px solid #e8e8e8;border-radius:9px;padding:16px 18px;margin-bottom:18px}
+.font-preview-hi{font-size:1.45rem;font-weight:700;color:#1a1a1a;margin-bottom:3px;line-height:1.3}
+.font-preview-en{font-size:1.1rem;font-weight:600;color:#333;margin-bottom:8px}
+.font-preview-body{font-size:.88rem;color:#666;line-height:1.65}
+.font-preview-label{font-size:.68rem;color:#aaa;margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px}
 </style>
 </head>
 <body>
@@ -114,6 +132,77 @@ async function saveProfile() {
   } catch { toast('Error updating profile', 'error'); }
 }
 
+// ── Font picker data ────────────────────────────────────────────────────────
+const HINDI_FONTS = [
+  { id: 'Noto Sans Devanagari', label: 'Noto Sans Devanagari', weights: 'wght@300;400;500;700;800', cat: 'Sans-serif', sample: 'जनबोल न्यूज़' },
+  { id: 'Baloo 2',              label: 'Baloo 2',              weights: 'wght@400;500;600;700;800', cat: 'Display',    sample: 'जनबोल न्यूज़' },
+  { id: 'Mukta',                label: 'Mukta',                weights: 'wght@300;400;500;700',     cat: 'Sans-serif', sample: 'जनबोल न्यूज़' },
+  { id: 'Laila',                label: 'Laila',                weights: 'wght@400;600;700',         cat: 'Serif',      sample: 'जनबोल न्यूज़' },
+  { id: 'Hind',                 label: 'Hind',                 weights: 'wght@300;400;500;600;700', cat: 'Sans-serif', sample: 'जनबोल न्यूज़' },
+];
+const ENGLISH_FONTS = [
+  { id: 'Source Serif 4',   label: 'Source Serif 4',   weights: 'ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600', cat: 'Serif',      sample: 'Janbol News' },
+  { id: 'Roboto',           label: 'Roboto',           weights: 'wght@300;400;500;700',                                cat: 'Sans-serif', sample: 'Janbol News' },
+  { id: 'Inter',            label: 'Inter',            weights: 'wght@300;400;500;600;700',                            cat: 'Sans-serif', sample: 'Janbol News' },
+  { id: 'Lato',             label: 'Lato',             weights: 'wght@300;400;700',                                    cat: 'Sans-serif', sample: 'Janbol News' },
+  { id: 'Merriweather',     label: 'Merriweather',     weights: 'ital,wght@0,300;0,400;0,700',                         cat: 'Serif',      sample: 'Janbol News' },
+  { id: 'Playfair Display', label: 'Playfair Display', weights: 'ital,wght@0,400;0,700;1,400',                         cat: 'Serif',      sample: 'Janbol News' },
+];
+
+let selectedFontHi = 'Baloo 2';
+let selectedFontEn = 'Roboto';
+let fontPreviewsLoaded = false;
+
+function renderFontCards(fonts, type) {
+  return fonts.map(f =>
+    '<div class="font-card" data-type="' + type + '" data-font="' + f.id + '" onclick="selectFont(\'' + type + '\',\'' + f.id.replace(/'/g, "\\'") + '\')">' +
+    '<div class="font-card-sample" style="font-family:\'' + f.id + '\',sans-serif;">' + f.sample + '</div>' +
+    '<div class="font-card-name">' + f.label + '</div>' +
+    '<div class="font-card-cat">' + f.cat + '</div>' +
+    '<div class="font-card-check"><i class="fa-solid fa-check"></i></div>' +
+    '</div>'
+  ).join('');
+}
+
+function loadFontPreviews() {
+  if (fontPreviewsLoaded) return;
+  fontPreviewsLoaded = true;
+  const all = [...HINDI_FONTS, ...ENGLISH_FONTS];
+  const families = all.map(f => 'family=' + encodeURIComponent(f.id) + ':' + f.weights);
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?' + families.join('&') + '&display=swap';
+  document.head.appendChild(link);
+}
+
+function selectFont(type, fontId) {
+  if (type === 'hi') selectedFontHi = fontId;
+  else selectedFontEn = fontId;
+  document.querySelectorAll('.font-card[data-type="' + type + '"]').forEach(el => {
+    el.classList.toggle('selected', el.dataset.font === fontId);
+  });
+  updateFontPreview();
+}
+
+function updateFontCardSelection() {
+  document.querySelectorAll('.font-card[data-type="hi"]').forEach(el => {
+    el.classList.toggle('selected', el.dataset.font === selectedFontHi);
+  });
+  document.querySelectorAll('.font-card[data-type="en"]').forEach(el => {
+    el.classList.toggle('selected', el.dataset.font === selectedFontEn);
+  });
+  updateFontPreview();
+}
+
+function updateFontPreview() {
+  const hi = document.getElementById('fontPreviewHi');
+  const en = document.getElementById('fontPreviewEn');
+  const body = document.getElementById('fontPreviewBody');
+  if (hi) hi.style.fontFamily = "'" + selectedFontHi + "', sans-serif";
+  if (en) en.style.fontFamily = "'" + selectedFontEn + "', serif";
+  if (body) body.style.fontFamily = "'" + selectedFontHi + "', sans-serif";
+}
+
 function render() {
   document.getElementById('pageBody').innerHTML = `
   <div class="settings-layout">
@@ -122,6 +211,7 @@ function render() {
       <a data-sec="profile" onclick="switchSection('profile')" class="active"><i class="fa-solid fa-user-circle"></i> My Profile</a>
       ${!isEditorRole ? `
       <a data-sec="general" onclick="switchSection('general')"><i class="fa-solid fa-gear"></i> General</a>
+      <a data-sec="typography" onclick="switchSection('typography')"><i class="fa-solid fa-font"></i> Typography</a>
       <a data-sec="social" onclick="switchSection('social')"><i class="fa-solid fa-share-nodes"></i> Social Links</a>
       <a data-sec="analytics" onclick="switchSection('analytics')"><i class="fa-solid fa-chart-line"></i> Analytics</a>
       <a data-sec="adsense" onclick="switchSection('adsense')"><i class="fa-solid fa-rectangle-ad"></i> AdSense</a>
@@ -227,6 +317,31 @@ function render() {
               </div>
             </div>
             <button class="btn-save" onclick="saveSection('ticker')"><i class="fa-solid fa-floppy-disk"></i> Save Ticker</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typography -->
+      <div class="section-group" data-section="typography" id="sec-typography" ${isEditorRole ? 'style="display:none!important"' : ''}>
+        <div class="section-card">
+          <div class="section-head"><i class="fa-solid fa-font"></i><h3>Typography & Fonts</h3></div>
+          <div class="section-body">
+
+            <div class="font-section-label"><i class="fa-solid fa-language"></i>Hindi Font (हिंदी)</div>
+            <div class="font-grid">${renderFontCards(HINDI_FONTS, 'hi')}</div>
+
+            <div class="font-section-label"><i class="fa-solid fa-a"></i>English Font</div>
+            <div class="font-grid">${renderFontCards(ENGLISH_FONTS, 'en')}</div>
+
+            <div class="font-section-label"><i class="fa-solid fa-eye"></i>Live Preview</div>
+            <div class="font-preview-box">
+              <div class="font-preview-label" id="fontPreviewMeta">Hindi · English</div>
+              <div class="font-preview-hi" id="fontPreviewHi">भारत की ताज़ा खबरें — जनबोल न्यूज़</div>
+              <div class="font-preview-en" id="fontPreviewEn">Breaking News · Janbol News</div>
+              <div class="font-preview-body" id="fontPreviewBody">IMF की रिपोर्ट के अनुसार भारत ने जापान को पीछे छोड़ते हुए दुनिया की चौथी सबसे बड़ी अर्थव्यवस्था का दर्जा हासिल किया।</div>
+            </div>
+
+            <button class="btn-save" onclick="saveSection('typography')"><i class="fa-solid fa-floppy-disk"></i> Save Typography</button>
           </div>
         </div>
       </div>
@@ -393,6 +508,7 @@ function switchSection(sec) {
   document.querySelectorAll('.settings-nav a').forEach(a => a.classList.toggle('active', a.dataset.sec === sec));
   document.querySelectorAll('.section-group').forEach(el => el.classList.toggle('active', el.dataset.section === sec));
   if (sec === 'profile') loadProfileSection();
+  if (sec === 'typography') { loadFontPreviews(); setTimeout(() => { updateFontCardSelection(); }, 80); }
 }
 
 async function loadSettings() {
@@ -434,6 +550,9 @@ function populateFields() {
   set('contactPhone',  s.contact_phone);
   set('addressHi',     s.address_hi);
   set('addressEn',     s.address_en);
+  if (s.font_hi) selectedFontHi = s.font_hi;
+  if (s.font_en) selectedFontEn = s.font_en;
+  updateFontCardSelection();
 }
 
 async function saveSection(section) {
@@ -494,6 +613,12 @@ async function saveSection(section) {
       address_hi:    document.getElementById('addressHi').value.trim(),
       address_en:    document.getElementById('addressEn').value.trim(),
     });
+  }
+
+  if (section === 'typography') {
+    Object.assign(payload, { font_hi: selectedFontHi, font_en: selectedFontEn });
+    // Update public-site cache so changes are reflected immediately in this browser
+    try { localStorage.setItem('jn_fonts', JSON.stringify({ font_hi: selectedFontHi, font_en: selectedFontEn, ts: Date.now() })); } catch(e) {}
   }
 
   try {

@@ -14,6 +14,7 @@ class AdminSettingsController extends Controller {
         'signatory_name','signatory_title',
         'ads_enabled','adsense_id','adsense_header','adsense_sidebar','adsense_article',
         'ga_id',
+        'font_hi','font_en',
     ];
 
     public function index() {
