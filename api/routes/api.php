@@ -15,6 +15,7 @@ use App\Http\Controllers\Public\PublicCategoryController;
 use App\Http\Controllers\Public\PublicBreakingController;
 use App\Http\Controllers\Public\PublicSearchController;
 use App\Http\Controllers\Public\PublicEpaperController;
+use App\Http\Controllers\Public\PublicSettingsController;
 
 /* ══════════════════════════════════════════
    PUBLIC ROUTES
@@ -33,6 +34,9 @@ Route::prefix('news')->group(function () {
 
     // Search
     Route::get('/search',           [PublicSearchController::class, 'search']);
+
+    // Public settings (safe keys only)
+    Route::get('/settings',         [PublicSettingsController::class, 'index']);
 
     // E-papers
     Route::get('/epapers',          [PublicEpaperController::class, 'index']);

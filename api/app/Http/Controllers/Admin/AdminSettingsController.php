@@ -12,6 +12,8 @@ class AdminSettingsController extends Controller {
         'site_name','site_tagline','site_email','site_phone',
         'facebook','twitter','instagram','youtube','telegram',
         'signatory_name','signatory_title',
+        'ads_enabled','adsense_id','adsense_header','adsense_sidebar','adsense_article',
+        'ga_id',
     ];
 
     public function index() {
