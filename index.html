@@ -176,7 +176,15 @@
       titleEl.textContent = getLocalText(main, 'title') || main.title || '';
       const metaEl = document.createElement('div');
       metaEl.className = 'hero-main-meta hi-text';
-      metaEl.textContent = formatDate(main.published_at || main.created_at) + (main.author_name ? ' · ' + main.author_name : '');
+      const dateStr = formatDate(main.published_at || main.created_at);
+      if (main.author_name) {
+        const avatarHTML = main.author_avatar_url
+          ? `<img src="${main.author_avatar_url}" alt="${main.author_name}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:5px;border:1.5px solid rgba(255,255,255,.5);" onerror="this.style.display='none'">`
+          : '✍ ';
+        metaEl.innerHTML = dateStr + ' · ' + avatarHTML + main.author_name;
+      } else {
+        metaEl.textContent = dateStr;
+      }
 
       overlay.appendChild(catBadge);
       overlay.appendChild(titleEl);
