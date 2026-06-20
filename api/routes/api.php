@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminCategoryController;
 use App\Http\Controllers\Admin\AdminBreakingController;
 use App\Http\Controllers\Admin\AdminAuthorController;
 use App\Http\Controllers\Admin\AdminEpaperController;
+use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\AdminSettingsController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Public\PublicArticleController;
@@ -52,6 +53,7 @@ Route::middleware(['auth:sanctum', 'ability:admin'])->prefix('admin')->group(fun
     Route::post('/logout',          [AdminAuthController::class, 'logout']);
     Route::get('/me',               [AdminAuthController::class, 'me']);
     Route::put('/profile/password', [AdminAuthController::class, 'updatePassword']);
+    Route::post('/profile',         [AdminProfileController::class, 'update']);
 
     // Dashboard
     Route::get('/dashboard/stats',  [AdminDashboardController::class, 'stats']);

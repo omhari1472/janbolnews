@@ -53,7 +53,7 @@ async function syncUser() {
     const data = await apiFetch('/admin/me');
     if (data.success && data.data) {
       const u = data.data;
-      localStorage.setItem('jn_admin_user', JSON.stringify({ id: u.id, name: u.name, email: u.email, role: u.role, permissions: u.permissions ?? null }));
+      localStorage.setItem('jn_admin_user', JSON.stringify({ id: u.id, name: u.name, email: u.email, role: u.role, permissions: u.permissions ?? null, avatar_url: u.avatar_url ?? null }));
       const nameEl = document.getElementById('sbUserName');
       if (nameEl) nameEl.textContent = u.name;
     }
@@ -244,8 +244,8 @@ function injectSidebar(activePage) {
       ${nav.map(n => `<a href="${n.href}" class="${n.href === activePage ? 'active' : ''}"><i class="fa-solid ${n.icon}"></i> <span>${n.label}</span></a>`).join('')}
     </nav>
     <div class="sb-user-section">
-      <div class="sb-user-card">
-        <div class="sb-user-avatar">${initials}</div>
+      <div class="sb-user-card" style="cursor:pointer" onclick="window.location.href='settings.html'" title="Edit profile">
+        <div class="sb-user-avatar" id="sbUserAvatar">${user?.avatar_url ? `<img src="${user.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : initials}</div>
         <div style="flex:1;overflow:hidden">
           <div class="sb-user-name" id="sbUserName">${user?.name || 'Admin'}</div>
           <span class="sb-user-role-badge ${role}">${roleLabel}</span>
