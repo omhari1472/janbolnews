@@ -9,452 +9,410 @@
   <link rel="apple-touch-icon" href="/img/favicon-192.png">
   <meta name="theme-color" content="#C41E3A">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="जनबोल न्यूज़ ई-पेपर — आज का अखबार ऑनलाइन पढ़ें। Janbol News E-Paper viewer.">
+  <meta name="description" content="जनबोल न्यूज़ ई-पेपर — आज का अखबार ऑनलाइन पढ़ें। Janbol News E-Paper.">
   <title>ई-पेपर | जनबोल न्यूज़</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* ── E-Paper page ── */
+    .ep-page { background: #f5f5f0; min-height: 60vh; }
+
+    /* ── Top hero: today's edition ── */
+    .ep-hero {
+      background: #1a1a1a;
+      padding: 40px 0 0;
+      margin-bottom: 0;
+    }
+    .ep-hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    .ep-hero-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #C41E3A;
+      margin-bottom: 6px;
+    }
+    .ep-hero-title {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 800;
+      color: #fff;
+      font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+    .ep-hero-meta {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 24px;
+    }
+    .ep-hero-meta span { color: #C41E3A; margin-right: 12px; }
+
+    /* ── Article grid inside edition ── */
+    .ep-edition-articles {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 1px;
+      background: #333;
+      border-top: 3px solid #C41E3A;
+    }
+    @media (max-width: 768px) {
+      .ep-edition-articles { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 500px) {
+      .ep-edition-articles { grid-template-columns: 1fr; }
+    }
+    .ep-art-card {
+      background: #fff;
+      padding: 16px;
+      cursor: pointer;
+      transition: background .15s;
+      text-decoration: none;
+      display: block;
+    }
+    .ep-art-card:hover { background: #fef8f8; }
+    .ep-art-card.lead { grid-row: span 2; padding: 20px; }
+    .ep-art-img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .ep-art-cat {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #C41E3A;
+      margin-bottom: 5px;
+    }
+    .ep-art-title {
+      font-size: .92rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.4;
+      font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+    }
+    .ep-art-card.lead .ep-art-title { font-size: 1.15rem; line-height: 1.35; }
+    .ep-art-excerpt {
+      font-size: .8rem;
+      color: #666;
+      margin-top: 6px;
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+    }
+    .ep-art-divider {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 10px 0;
+    }
+
+    /* ── Archive section ── */
+    .ep-archive { padding: 36px 0 48px; }
+    .ep-archive-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .ep-archive-head h2 {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #1a1a1a;
+    }
+    .ep-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 900px)  { .ep-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 640px)  { .ep-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .ep-card {
+      background: #fff;
+      border: 1.5px solid #ebebeb;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: box-shadow .15s, transform .15s, border-color .15s;
+    }
+    .ep-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.1); transform: translateY(-2px); border-color: #C41E3A; }
+    .ep-card.active { border-color: #C41E3A; box-shadow: 0 0 0 3px rgba(196,30,58,.12); }
+    .ep-card-top {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2e2e2e 100%);
+      padding: 20px 14px 14px;
+      position: relative;
+    }
+    .ep-card-day {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .ep-card-month {
+      font-size: .75rem;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+    .ep-card-year {
+      font-size: .7rem;
+      color: #666;
+      margin-top: 1px;
+    }
+    .ep-card-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #C41E3A;
+      color: #fff;
+      font-size: .65rem;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 99px;
+      letter-spacing: .5px;
+    }
+    .ep-card-body {
+      padding: 10px 14px 12px;
+    }
+    .ep-card-title {
+      font-size: .82rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.3;
+      font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ep-card-count {
+      font-size: .72rem;
+      color: #999;
+      margin-top: 3px;
+    }
+    .ep-card-count strong { color: #C41E3A; }
+
+    /* ── Loading / empty states ── */
+    .ep-skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .ep-empty { text-align: center; padding: 60px 20px; color: #bbb; }
+    .ep-empty i { font-size: 3rem; display: block; margin-bottom: 14px; color: #e0e0e0; }
+
+    /* ── viewer loading ── */
+    .ep-view-loading { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 60px; color: #888; background: #fff; }
+  </style>
 </head>
 <body>
 
 <div id="navbar-inject"></div>
 
-<main id="main-content" role="main" class="epaper-page">
+<main id="main-content" role="main" class="ep-page">
 
   <!-- Page Header -->
   <div class="category-page-header">
     <div class="container">
-      <h1 class="category-page-title hi-text">📰 ई-पेपर</h1>
-      <p class="hi-text" style="color:var(--gray-400);font-size:14px;margin-top:6px;">आज का अखबार ऑनलाइन पढ़ें — E-Paper Archive</p>
+      <h1 class="category-page-title hi-text">ई-पेपर</h1>
+      <p class="hi-text" style="color:var(--gray-400);font-size:14px;margin-top:6px;">आज का ई-पेपर — चुनी हुई खबरें, एक जगह पढ़ें</p>
     </div>
   </div>
 
-  <div class="container" style="padding-top:var(--space-lg);">
-
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb" style="padding:0 0 var(--space-md);" aria-label="Breadcrumb">
-      <a href="/index.html" class="hi-text">होम</a>
-      <span class="sep">›</span>
-      <span class="current hi-text">ई-पेपर</span>
-    </nav>
-
-    <!-- ── PDF Viewer (shown when paper selected) ── -->
-    <div id="pdf-viewer-section" style="display:none;margin-bottom:var(--space-xl);">
-      <div class="pdf-viewer-wrap" aria-label="PDF व्यूअर">
-        <div class="pdf-viewer-toolbar" role="toolbar" aria-label="PDF नियंत्रण">
-          <button class="pdf-toolbar-btn" id="btn-prev-page" title="पिछला पृष्ठ" aria-label="पिछला पृष्ठ" disabled>‹ पिछला</button>
-          <span class="pdf-page-info hi-text" id="pdf-page-info">पृष्ठ — / —</span>
-          <button class="pdf-toolbar-btn" id="btn-next-page" title="अगला पृष्ठ" aria-label="अगला पृष्ठ" disabled>अगला ›</button>
-
-          <div class="pdf-zoom-btns">
-            <button class="pdf-toolbar-btn" id="btn-zoom-out" title="छोटा करें" aria-label="ज़ूम आउट">−</button>
-            <button class="pdf-toolbar-btn" id="btn-zoom-in"  title="बड़ा करें" aria-label="ज़ूम इन">+</button>
-            <button class="pdf-toolbar-btn" id="btn-zoom-fit" title="फ़िट करें" aria-label="स्क्रीन पर फ़िट करें">⊡</button>
-          </div>
-
-          <!-- Two-page spread toggle (desktop only) -->
-          <button class="pdf-toolbar-btn" id="btn-spread-toggle" title="दो-पृष्ठ दृश्य" aria-label="दो-पृष्ठ दृश्य" style="margin-left:auto;">⧎ दो पृष्ठ</button>
-
-          <a class="pdf-toolbar-btn pdf-download-btn" id="pdf-download-btn" download title="PDF डाउनलोड करें" aria-label="PDF डाउनलोड करें">⬇ डाउनलोड</a>
-        </div>
-
-        <div class="pdf-canvas-area" id="pdf-canvas-area">
-          <div class="pdf-loading" id="pdf-loading">
-            <div class="pdf-loading-spinner"></div>
-            <span class="hi-text">ई-पेपर लोड हो रहा है…</span>
-          </div>
-        </div>
+  <!-- Today's Edition Hero -->
+  <div class="ep-hero" id="ep-hero">
+    <div class="ep-hero-inner">
+      <div id="hero-content">
+        <div class="ep-skeleton" style="height:24px;width:140px;margin-bottom:10px;border-radius:4px;"></div>
+        <div class="ep-skeleton" style="height:36px;width:380px;margin-bottom:8px;border-radius:4px;"></div>
+        <div class="ep-skeleton" style="height:16px;width:180px;margin-bottom:24px;border-radius:4px;"></div>
+        <div class="ep-skeleton" style="height:260px;border-radius:0;"></div>
       </div>
     </div>
-
-    <!-- ── Archive Section ── -->
-    <div class="section-heading">
-      <h2 class="section-title hi-text">
-        पुराने अंक
-        <span class="en-sub">ARCHIVE</span>
-      </h2>
-    </div>
-
-    <!-- Edition Filters -->
-    <div class="edition-filters" id="edition-filters" role="group" aria-label="संस्करण चुनें">
-      <button class="edition-btn hi-text active" data-edition="">सभी संस्करण</button>
-      <!-- More edition buttons added by JS -->
-    </div>
-
-    <!-- Archive Grid -->
-    <div class="epaper-archive-grid" id="archive-grid" aria-label="ई-पेपर आर्काइव" aria-live="polite">
-      <!-- Skeletons -->
-    </div>
-
-    <!-- Load More -->
-    <div style="text-align:center;margin:var(--space-xl) 0;">
-      <button id="load-more-btn" class="btn-primary hi-text" style="display:none;">और पुराने अंक देखें</button>
-    </div>
-
   </div>
+
+  <!-- Archive -->
+  <div class="container ep-archive">
+    <div class="ep-archive-head">
+      <h2 class="hi-text">पुराने अंक</h2>
+    </div>
+    <div class="ep-grid" id="ep-grid">
+      ${[1,2,3,4].map(() => `<div class="ep-skeleton" style="height:120px;border-radius:10px;"></div>`).join('')}
+    </div>
+    <div style="text-align:center;margin-top:28px;">
+      <button id="load-more-btn" class="btn-primary hi-text" style="display:none;">और अंक देखें</button>
+    </div>
+  </div>
+
 </main>
 
 <div id="footer-inject"></div>
 <div class="toast-container" id="toast-container"></div>
-
-<!-- PDF.js CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <script src="/js/config.js"></script>
 <script src="/js/news.js"></script>
 <script src="/js/nav.js"></script>
 <script src="/js/ads.js"></script>
 <script>
-(function() {
+(function () {
   'use strict';
 
-  const newsAPI = new NewsAPI();
+  const API = (window.CONFIG?.apiUrl) || (
+    ['localhost','127.0.0.1'].includes(location.hostname) ? 'http://localhost:8000/api' : '/api'
+  );
 
-  /* ── State ── */
-  let pdfDoc      = null;
-  let currentPage = 1;
-  let totalPages  = 0;
-  let scale       = 1.0;
-  let spreadMode  = window.innerWidth >= 1024;
-  let rendering   = false;
-  let currentPdfUrl = '';
+  let editions = [];
+  let page     = 1;
+  let total    = 0;
+  const LIMIT  = 20;
 
-  let archivePage    = 1;
-  let archiveTotal   = 0;
-  let currentEdition = '';
-  const ARCHIVE_LIMIT = 12;
+  /* ────────────────────────────
+     LOAD EDITION LIST
+  ──────────────────────────── */
+  async function loadEditions(reset) {
+    if (reset) { page = 1; editions = []; }
+    try {
+      const r = await fetch(`${API}/news/epapers?limit=${LIMIT}&page=${page}`).then(r => r.json());
+      const items = r.data?.items || [];
+      total = r.data?.total || 0;
+      editions = reset ? items : editions.concat(items);
 
-  // PDF.js worker
-  if (window.pdfjsLib) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc =
-      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      if (reset && items.length) {
+        openEdition(items[0], true);   // auto-open latest
+      }
+      renderArchive();
+    } catch (e) {
+      document.getElementById('ep-grid').innerHTML =
+        '<div class="ep-empty" style="grid-column:1/-1"><i class="fa-solid fa-triangle-exclamation"></i><p>ई-पेपर लोड नहीं हो सका।</p></div>';
+    }
   }
 
-  /* ════════════════════════════
-     PDF VIEWER
-  ════════════════════════════ */
-
-  async function openPdf(url, title) {
-    if (!window.pdfjsLib) {
-      showToast('PDF व्यूअर लोड नहीं हो सका। कृपया डाउनलोड करें।', 'error');
+  /* ────────────────────────────
+     RENDER ARCHIVE GRID
+  ──────────────────────────── */
+  function renderArchive() {
+    const grid = document.getElementById('ep-grid');
+    if (!editions.length) {
+      grid.innerHTML = '<div class="ep-empty" style="grid-column:1/-1"><i class="fa-solid fa-newspaper"></i><p class="hi-text">कोई अंक उपलब्ध नहीं है।</p></div>';
       return;
     }
 
-    currentPdfUrl = url;
-    const viewerSection = document.getElementById('pdf-viewer-section');
-    viewerSection.style.display = 'block';
-    viewerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // skip index 0 — shown in hero
+    const archive = editions.slice(1);
+    if (!archive.length) {
+      grid.innerHTML = '<p class="hi-text" style="color:#aaa;font-size:.85rem;">कोई पुराना अंक नहीं है।</p>';
+    } else {
+      grid.innerHTML = archive.map(e => cardHTML(e)).join('');
+    }
 
-    const canvasArea  = document.getElementById('pdf-canvas-area');
-    const loadingEl   = document.getElementById('pdf-loading');
-    canvasArea.innerHTML = '';
-    canvasArea.appendChild(loadingEl);
-    loadingEl.style.display = 'flex';
+    const loadBtn = document.getElementById('load-more-btn');
+    if (editions.length < total) {
+      loadBtn.style.display = 'inline-flex';
+      loadBtn.onclick = () => { page++; loadEditions(false); };
+    } else {
+      loadBtn.style.display = 'none';
+    }
+  }
 
-    // Download link
-    const downloadBtn = document.getElementById('pdf-download-btn');
-    downloadBtn.href = url;
-    downloadBtn.setAttribute('download', (title || 'epaper') + '.pdf');
+  function cardHTML(e) {
+    const d    = new Date(e.edition_date + 'T00:00:00');
+    const day  = d.getDate();
+    const mon  = d.toLocaleDateString('hi-IN', { month: 'long' });
+    const year = d.getFullYear();
+    return `
+    <div class="ep-card" id="card-${e.id}" onclick="openEdition(${JSON.stringify(e).replace(/"/g,'&quot;')})">
+      <div class="ep-card-top">
+        <div class="ep-card-badge">${e.article_count} खबरें</div>
+        <div class="ep-card-day">${day}</div>
+        <div class="ep-card-month">${mon}</div>
+        <div class="ep-card-year">${year}</div>
+      </div>
+      <div class="ep-card-body">
+        <div class="ep-card-title">${e.title || '—'}</div>
+        <div class="ep-card-count"><strong>${e.article_count}</strong> खबरें</div>
+      </div>
+    </div>`;
+  }
+
+  /* ────────────────────────────
+     OPEN / DISPLAY EDITION
+  ──────────────────────────── */
+  let activeId = null;
+
+  async function openEdition(e, isHero) {
+    activeId = e.id;
+    // highlight active card
+    document.querySelectorAll('.ep-card').forEach(c => c.classList.remove('active'));
+    const card = document.getElementById('card-' + e.id);
+    if (card) card.classList.add('active');
+
+    if (!isHero) {
+      document.getElementById('ep-hero').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // show loading in hero
+    const heroContent = document.getElementById('hero-content');
+    heroContent.innerHTML = '<div class="ep-view-loading"><i class="fa-solid fa-spinner fa-spin fa-lg"></i> <span class="hi-text">लोड हो रहा है…</span></div>';
 
     try {
-      const loadingTask = pdfjsLib.getDocument(url);
-      pdfDoc = await loadingTask.promise;
-      totalPages  = pdfDoc.numPages;
-      currentPage = 1;
-      scale       = calcFitScale();
-
-      loadingEl.style.display = 'none';
-      updatePageControls();
-      await renderCurrentPages();
-    } catch (e) {
-      loadingEl.innerHTML = `
-        <div style="text-align:center;">
-          <p class="hi-text" style="color:rgba(255,255,255,0.7);margin-bottom:16px;">PDF लोड नहीं हो सका।</p>
-          <a href="${url}" download class="pdf-toolbar-btn pdf-download-btn">⬇ डाउनलोड करें</a>
-        </div>`;
+      const r = await fetch(`${API}/news/epapers/${e.id}`).then(r => r.json());
+      const ed = r.data;
+      renderHero(ed);
+    } catch {
+      heroContent.innerHTML = '<div class="ep-view-loading" style="color:#C41E3A;"><i class="fa-solid fa-triangle-exclamation"></i> <span class="hi-text">लोड नहीं हो सका।</span></div>';
     }
   }
 
-  function calcFitScale() {
-    const area = document.getElementById('pdf-canvas-area');
-    const availWidth = (area.clientWidth || 800) - 32;
-    // Approximate A3 newspaper: 842 x 1191 pt
-    return Math.min(1.5, availWidth / 842);
-  }
+  function renderHero(ed) {
+    const d   = new Date(ed.edition_date + 'T00:00:00');
+    const dateStr = d.toLocaleDateString('hi-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    const articles = ed.articles || [];
 
-  async function renderPage(pageNum) {
-    if (!pdfDoc) return null;
-    const page = await pdfDoc.getPage(pageNum);
-    const viewport = page.getViewport({ scale });
-
-    const canvas = document.createElement('canvas');
-    canvas.width  = viewport.width;
-    canvas.height = viewport.height;
-    const ctx = canvas.getContext('2d');
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'pdf-canvas-wrap';
-    wrapper.setAttribute('aria-label', 'पृष्ठ ' + pageNum);
-    wrapper.appendChild(canvas);
-
-    await page.render({ canvasContext: ctx, viewport }).promise;
-    return wrapper;
-  }
-
-  async function renderCurrentPages() {
-    if (rendering || !pdfDoc) return;
-    rendering = true;
-
-    const area = document.getElementById('pdf-canvas-area');
-    area.innerHTML = '';
-
-    const pagesToRender = spreadMode && currentPage < totalPages
-      ? [currentPage, currentPage + 1]
-      : [currentPage];
-
-    for (const pn of pagesToRender) {
-      const wrapper = await renderPage(pn);
-      if (wrapper) area.appendChild(wrapper);
+    let articlesHTML = '';
+    if (!articles.length) {
+      articlesHTML = '<div style="background:#fff;padding:40px;text-align:center;color:#bbb;" class="hi-text">इस अंक में कोई खबर नहीं है।</div>';
+    } else {
+      articlesHTML = `<div class="ep-edition-articles">
+        ${articles.map((a, i) => articleCardHTML(a, i === 0)).join('')}
+      </div>`;
     }
 
-    rendering = false;
-    updatePageControls();
+    document.getElementById('hero-content').innerHTML = `
+      <div class="ep-hero-label">आज का ई-पेपर</div>
+      <div class="ep-hero-title">${ed.title || '—'}</div>
+      <div class="ep-hero-meta"><span>${dateStr}</span> ${ed.article_count} खबरें</div>
+      ${articlesHTML}
+    `;
   }
 
-  function updatePageControls() {
-    const info    = document.getElementById('pdf-page-info');
-    const prevBtn = document.getElementById('btn-prev-page');
-    const nextBtn = document.getElementById('btn-next-page');
+  function articleCardHTML(a, isLead) {
+    const url = `/article.html?slug=${encodeURIComponent(a.slug)}`;
+    const imgHTML = a.featured_image_url
+      ? `<img class="ep-art-img" src="${a.featured_image_url}" alt="${a.title_hi || ''}" loading="lazy" onerror="this.style.display='none'">`
+      : (isLead ? '<div style="height:160px;background:#f0f0f0;border-radius:4px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;color:#ccc;"><i class="fa-solid fa-image fa-2x"></i></div>' : '');
 
-    if (info) {
-      const lang = getLang();
-      info.textContent = lang === 'hi'
-        ? `पृष्ठ ${currentPage} / ${totalPages}`
-        : `Page ${currentPage} of ${totalPages}`;
-    }
-    if (prevBtn) prevBtn.disabled = currentPage <= 1;
-    if (nextBtn) nextBtn.disabled = spreadMode
-      ? currentPage + 1 >= totalPages
-      : currentPage >= totalPages;
+    return `<a href="${url}" class="ep-art-card ${isLead ? 'lead' : ''}">
+      ${imgHTML}
+      ${a.category ? `<div class="ep-art-cat">${a.category}</div>` : ''}
+      <div class="ep-art-title">${a.title_hi || a.title_en || '—'}</div>
+      ${a.excerpt_hi && isLead ? `<hr class="ep-art-divider"><p class="ep-art-excerpt">${a.excerpt_hi}</p>` : ''}
+    </a>`;
   }
 
-  function prevPage() {
-    if (!pdfDoc || currentPage <= 1) return;
-    currentPage = spreadMode ? Math.max(1, currentPage - 2) : currentPage - 1;
-    renderCurrentPages();
-  }
+  /* ── init ── */
+  document.addEventListener('DOMContentLoaded', () => loadEditions(true));
 
-  function nextPage() {
-    if (!pdfDoc || currentPage >= totalPages) return;
-    currentPage = spreadMode ? Math.min(totalPages, currentPage + 2) : currentPage + 1;
-    renderCurrentPages();
-  }
-
-  function zoomIn() {
-    scale = Math.min(3.0, scale + 0.2);
-    renderCurrentPages();
-  }
-
-  function zoomOut() {
-    scale = Math.max(0.3, scale - 0.2);
-    renderCurrentPages();
-  }
-
-  function zoomFit() {
-    scale = calcFitScale();
-    renderCurrentPages();
-  }
-
-  function toggleSpread() {
-    spreadMode = !spreadMode;
-    const btn = document.getElementById('btn-spread-toggle');
-    if (btn) btn.style.background = spreadMode ? 'rgba(196,30,58,0.3)' : '';
-    // Align to even page for spread
-    if (spreadMode && currentPage % 2 === 0 && currentPage > 1) currentPage--;
-    renderCurrentPages();
-  }
-
-  /* ── Wire PDF controls ── */
-  function initPdfControls() {
-    document.getElementById('btn-prev-page').addEventListener('click', prevPage);
-    document.getElementById('btn-next-page').addEventListener('click', nextPage);
-    document.getElementById('btn-zoom-in').addEventListener('click', zoomIn);
-    document.getElementById('btn-zoom-out').addEventListener('click', zoomOut);
-    document.getElementById('btn-zoom-fit').addEventListener('click', zoomFit);
-    document.getElementById('btn-spread-toggle').addEventListener('click', toggleSpread);
-
-    // Keyboard navigation
-    document.addEventListener('keydown', function(e) {
-      const viewer = document.getElementById('pdf-viewer-section');
-      if (!viewer || viewer.style.display === 'none') return;
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextPage();
-      if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   prevPage();
-    });
-  }
-
-  /* ════════════════════════════
-     ARCHIVE LIST
-  ════════════════════════════ */
-
-  async function loadArchive(reset) {
-    if (reset) {
-      archivePage = 1;
-      document.getElementById('archive-grid').innerHTML = '';
-    }
-
-    const grid = document.getElementById('archive-grid');
-    if (archivePage === 1) {
-      grid.appendChild(renderSkeleton(6, 220));
-    }
-
-    try {
-      const data = await newsAPI.fetchEpapers({
-        edition: currentEdition,
-        page: archivePage,
-        limit: ARCHIVE_LIMIT,
-      });
-      const papers = data.data?.items || data.data || [];
-      archiveTotal = data.total || data.count || papers.length;
-      const totalArchivePages = Math.ceil(archiveTotal / ARCHIVE_LIMIT);
-
-      if (archivePage === 1) grid.innerHTML = '';
-
-      if (!papers.length && archivePage === 1) {
-        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;"><p class="hi-text" style="color:var(--gray-400);">कोई ई-पेपर उपलब्ध नहीं है।</p></div>`;
-        return;
-      }
-
-      papers.forEach(function(paper, i) {
-        const item = document.createElement('div');
-        item.className = 'epaper-archive-item fade-in';
-        item.setAttribute('role', 'button');
-        item.setAttribute('tabindex', '0');
-        item.setAttribute('aria-label', paper.title || paper.date || 'ई-पेपर');
-
-        const thumbSrc = paper.thumbnail || paper.cover_image || '';
-
-        let thumbEl;
-        if (thumbSrc) {
-          thumbEl = document.createElement('img');
-          thumbEl.className = 'epaper-archive-thumb';
-          thumbEl.src = thumbSrc;
-          thumbEl.alt = paper.title || paper.date || 'ई-पेपर';
-          thumbEl.loading = 'lazy';
-          thumbEl.onerror = function() {
-            const ph = document.createElement('div');
-            ph.className = 'epaper-archive-thumb-placeholder';
-            ph.textContent = '📰';
-            this.replaceWith(ph);
-          };
-        } else {
-          thumbEl = document.createElement('div');
-          thumbEl.className = 'epaper-archive-thumb-placeholder';
-          thumbEl.textContent = '📰';
-        }
-
-        const dateEl = document.createElement('div');
-        dateEl.className = 'epaper-archive-date hi-text';
-        dateEl.textContent = paper.date
-          ? new Date(paper.date).toLocaleDateString(getLang() === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
-          : (paper.title || 'अंक');
-
-        const editionEl = document.createElement('div');
-        editionEl.className = 'epaper-archive-edition hi-text';
-        editionEl.textContent = paper.edition_name || getCityName(paper.edition) || '';
-
-        item.appendChild(thumbEl);
-        item.appendChild(dateEl);
-        item.appendChild(editionEl);
-
-        // Click → open PDF
-        function openThisPaper() {
-          document.querySelectorAll('.epaper-archive-item').forEach(function(el) {
-            el.classList.remove('active');
-          });
-          item.classList.add('active');
-          const pdfUrl = paper.pdf_url || paper.file_url || paper.url;
-          if (pdfUrl) {
-            openPdf(pdfUrl, paper.title || paper.date || 'epaper');
-          } else {
-            showToast('इस अंक की PDF उपलब्ध नहीं है।', 'error');
-          }
-        }
-
-        item.addEventListener('click', openThisPaper);
-        item.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter' || e.key === ' ') openThisPaper();
-        });
-
-        grid.appendChild(item);
-
-        // Auto-open latest on first load
-        if (archivePage === 1 && i === 0) {
-          const pdfUrl = paper.pdf_url || paper.file_url || paper.url;
-          if (pdfUrl) {
-            item.classList.add('active');
-            openPdf(pdfUrl, paper.title || paper.date || 'epaper');
-          }
-        }
-      });
-
-      // Load more button
-      const loadMoreBtn = document.getElementById('load-more-btn');
-      if (archivePage < totalArchivePages) {
-        loadMoreBtn.style.display = 'inline-flex';
-        loadMoreBtn.onclick = function() {
-          archivePage++;
-          loadArchive(false);
-        };
-      } else {
-        loadMoreBtn.style.display = 'none';
-      }
-
-    } catch (e) {
-      if (archivePage === 1) {
-        document.getElementById('archive-grid').innerHTML = `
-          <div style="grid-column:1/-1;text-align:center;padding:40px;">
-            <p class="hi-text" style="color:var(--gray-500);">ई-पेपर लोड नहीं हो सका।</p>
-          </div>`;
-      }
-    }
-  }
-
-  function getCityName(slug) {
-    const ed = window.JN_CONFIG && window.JN_CONFIG.editions.find(e => e.slug === slug);
-    if (!ed) return slug || '';
-    return getLang() === 'hi' ? ed.hi : ed.en;
-  }
-
-  /* ── Edition Filters ── */
-  function buildEditionFilters() {
-    const container = document.getElementById('edition-filters');
-    if (!container || !window.JN_CONFIG) return;
-
-    window.JN_CONFIG.editions.forEach(function(ed) {
-      const btn = document.createElement('button');
-      btn.className = 'edition-btn hi-text';
-      btn.dataset.edition = ed.slug;
-      btn.textContent = getLang() === 'hi' ? ed.hi : ed.en;
-      container.appendChild(btn);
-    });
-
-    container.addEventListener('click', function(e) {
-      const btn = e.target.closest('.edition-btn');
-      if (!btn) return;
-      container.querySelectorAll('.edition-btn').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-      currentEdition = btn.dataset.edition || '';
-      loadArchive(true);
-    });
-  }
-
-  /* ── Init ── */
-  document.addEventListener('DOMContentLoaded', function() {
-    initPdfControls();
-    buildEditionFilters();
-    loadArchive(true);
-  });
-
+  // expose for inline onclick
+  window.openEdition = openEdition;
 })();
 </script>
 </body>
