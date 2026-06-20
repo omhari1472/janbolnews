@@ -2,64 +2,86 @@
 namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use App\Models\Article;
 use App\Models\Epaper;
-use App\Services\FileUploadService;
 use Illuminate\Http\Request;
 
 class AdminEpaperController extends Controller {
     use ApiResponse;
-    public function __construct(private FileUploadService $uploader) {}
 
     public function index() {
-        return $this->successResponse(['items' => Epaper::orderByDesc('edition_date')->get()->map(fn($e) => $this->fmt($e))]);
+        $items = Epaper::withCount('articles')->orderByDesc('edition_date')->get()
+            ->map(fn($e) => $this->fmt($e));
+        return $this->successResponse(['items' => $items]);
+    }
+
+    public function show(Epaper $epaper) {
+        $epaper->load(['articles.category']);
+        return $this->successResponse($this->fmt($epaper, true));
     }
 
     public function store(Request $request) {
         $request->validate([
             'title'        => 'required|string|max:300',
             'edition_date' => 'required|date',
-            'pdf'          => 'nullable|mimes:pdf|max:30720',
-            'thumbnail'    => 'nullable|image|max:5120',
+            'status'       => 'nullable|in:draft,published',
         ]);
-        $data = $request->except(['pdf','thumbnail']);
-        if ($request->hasFile('pdf'))       $data['pdf_path']       = $this->uploader->upload($request->file('pdf'), 'epapers');
-        if ($request->hasFile('thumbnail')) $data['thumbnail_path'] = $this->uploader->upload($request->file('thumbnail'), 'epapers');
-        return $this->successResponse($this->fmt(Epaper::create($data)), 'E-paper created', 201);
+        $epaper = Epaper::create($request->only(['title','edition_date','edition','status']));
+        $this->syncArticles($epaper, $request->input('article_ids', []));
+        $epaper->load(['articles.category']);
+        return $this->successResponse($this->fmt($epaper, true), 'Edition created', 201);
     }
 
     public function update(Request $request, Epaper $epaper) {
-        $data = $request->except(['pdf','thumbnail','_method']);
-        if ($request->hasFile('pdf')) {
-            $this->uploader->delete($epaper->pdf_path);
-            $data['pdf_path'] = $this->uploader->upload($request->file('pdf'), 'epapers');
+        $request->validate([
+            'title'        => 'sometimes|string|max:300',
+            'edition_date' => 'sometimes|date',
+            'status'       => 'nullable|in:draft,published',
+        ]);
+        $epaper->update($request->only(['title','edition_date','edition','status']));
+        if ($request->has('article_ids')) {
+            $this->syncArticles($epaper, $request->input('article_ids', []));
         }
-        if ($request->hasFile('thumbnail')) {
-            $this->uploader->delete($epaper->thumbnail_path);
-            $data['thumbnail_path'] = $this->uploader->upload($request->file('thumbnail'), 'epapers');
-        }
-        $epaper->update($data);
-        return $this->successResponse($this->fmt($epaper->fresh()), 'Updated');
+        $epaper->load(['articles.category']);
+        return $this->successResponse($this->fmt($epaper->fresh()->load(['articles.category']), true), 'Updated');
     }
 
     public function destroy(Request $request, Epaper $epaper) {
         if ($request->user()->role !== 'super')
-            return $this->errorResponse('Only superadmin can delete e-papers.', 403);
-        $this->uploader->delete($epaper->pdf_path);
-        $this->uploader->delete($epaper->thumbnail_path);
+            return $this->errorResponse('Only superadmin can delete editions.', 403);
+        $epaper->articles()->detach();
         $epaper->delete();
         return $this->successResponse([], 'Deleted');
     }
 
-    private function fmt(Epaper $e): array {
-        return array_merge($e->toArray(), [
-            'pdf_url'       => $this->imgUrl($e->pdf_path),
-            'thumbnail_url' => $this->imgUrl($e->thumbnail_path),
-        ]);
+    private function syncArticles(Epaper $epaper, array $ids): void {
+        $sync = [];
+        foreach (array_values($ids) as $pos => $id) {
+            $sync[(int)$id] = ['position' => $pos];
+        }
+        $epaper->articles()->sync($sync);
     }
 
-    private function imgUrl(?string $path): ?string {
-        if (!$path) return null;
-        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) return $path;
-        return asset('storage/'.$path);
+    private function fmt(Epaper $e, bool $withArticles = false): array {
+        $data = [
+            'id'            => $e->id,
+            'title'         => $e->title,
+            'edition_date'  => $e->edition_date?->toDateString(),
+            'edition'       => $e->edition,
+            'status'        => $e->status ?? 'draft',
+            'article_count' => $e->articles_count ?? $e->articles->count(),
+            'created_at'    => $e->created_at?->toIso8601String(),
+        ];
+        if ($withArticles) {
+            $data['articles'] = $e->articles->map(fn($a) => [
+                'id'          => $a->id,
+                'title_hi'    => $a->title_hi,
+                'title_en'    => $a->title_en,
+                'category'    => $a->category?->name_hi,
+                'status'      => $a->status,
+                'position'    => $a->pivot->position,
+            ])->values();
+        }
+        return $data;
     }
 }

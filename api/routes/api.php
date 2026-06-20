@@ -94,6 +94,7 @@ Route::middleware(['auth:sanctum', 'ability:admin'])->prefix('admin')->group(fun
     // E-papers
     Route::get('/epapers',                 [AdminEpaperController::class, 'index']);
     Route::post('/epapers',                [AdminEpaperController::class, 'store']);
+    Route::get('/epapers/{epaper}',        [AdminEpaperController::class, 'show']);
     Route::post('/epapers/{epaper}',       [AdminEpaperController::class, 'update']);
     Route::delete('/epapers/{epaper}',     [AdminEpaperController::class, 'destroy']);
 
