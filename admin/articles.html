@@ -58,7 +58,9 @@ let filterStatus = '', filterLang = '', filterCat = '', filterSearch = '';
 let searchTimer = null;
 
 function render() {
-  const catOptions = JN_CATEGORIES.map(c => `<option value="${c.value}">${c.label} / ${c.labelHi}</option>`).join('');
+  const allowedCats = getAllowedCategories();
+  const catOptions = (allowedCats === null ? JN_CATEGORIES : JN_CATEGORIES.filter(c => allowedCats.includes(c.value)))
+    .map(c => `<option value="${c.value}">${c.label} / ${c.labelHi}</option>`).join('');
   document.getElementById('pageBody').innerHTML = `
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
     <div style="font-size:.88rem;color:#666;" id="resultCount">Loading…</div>

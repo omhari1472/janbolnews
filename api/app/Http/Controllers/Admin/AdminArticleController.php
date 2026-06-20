@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
 use App\Models\Article;
+use App\Models\Category;
 use App\Services\FileUploadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -32,7 +33,25 @@ class AdminArticleController extends Controller {
         return $this->successResponse($this->format($article->load(['category','author','tags'])));
     }
 
+    private function checkCategoryAccess(Request $request): ?object {
+        $user = $request->user();
+        if ($user->role === 'super') return null;
+        $perms = $user->permissions ?? [];
+        if (empty($perms['articles'])) {
+            return response()->json(['success'=>false,'message'=>'You do not have article access.'], 403);
+        }
+        $allowedCats = $perms['article_categories'] ?? [];
+        if (!empty($allowedCats) && $request->category_id) {
+            $slug = Category::find($request->category_id)?->slug;
+            if (!$slug || !in_array($slug, $allowedCats)) {
+                return response()->json(['success'=>false,'message'=>'You do not have access to this category.'], 403);
+            }
+        }
+        return null;
+    }
+
     public function store(Request $request) {
+        if ($err = $this->checkCategoryAccess($request)) return $err;
         $request->validate([
             'title_hi'        => 'required|string|max:500',
             'title_en'        => 'nullable|string|max:500',
@@ -61,6 +80,7 @@ class AdminArticleController extends Controller {
     }
 
     public function update(Request $request, Article $article) {
+        if ($err = $this->checkCategoryAccess($request)) return $err;
         $request->validate([
             'title_hi'       => 'sometimes|string|max:500',
             'category_id'    => 'sometimes|exists:categories,id',

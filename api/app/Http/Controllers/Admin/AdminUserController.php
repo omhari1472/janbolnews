@@ -12,7 +12,7 @@ class AdminUserController extends Controller {
 
     public function index() {
         $users = User::orderBy('created_at', 'desc')
-            ->get(['id','name','email','role','status','created_at']);
+            ->get(['id','name','email','role','permissions','status','created_at']);
         return $this->successResponse($users);
     }
 
@@ -25,14 +25,15 @@ class AdminUserController extends Controller {
             'status'                => ['required', Rule::in(['active','disabled'])],
         ]);
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => $request->role,
-            'status'   => $request->status,
+            'name'        => $request->name,
+            'email'       => $request->email,
+            'password'    => Hash::make($request->password),
+            'role'        => $request->role,
+            'permissions' => $request->role === 'editor' ? $request->permissions : null,
+            'status'      => $request->status,
         ]);
         return $this->successResponse(
-            $user->only(['id','name','email','role','status','created_at']),
+            $user->only(['id','name','email','role','permissions','status','created_at']),
             'User created successfully'
         );
     }
@@ -46,12 +47,13 @@ class AdminUserController extends Controller {
             'password'              => 'nullable|min:8|confirmed',
         ]);
         $data = $request->only(['name','email','role','status']);
+        $data['permissions'] = $request->role === 'editor' ? $request->permissions : null;
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
         $user->update($data);
         return $this->successResponse(
-            $user->fresh()->only(['id','name','email','role','status','created_at']),
+            $user->fresh()->only(['id','name','email','role','permissions','status','created_at']),
             'User updated'
         );
     }

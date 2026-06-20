@@ -54,12 +54,16 @@ document.getElementById('pageTitle').textContent = 'Dashboard';
 async function loadDashboard() {
   const pb = document.getElementById('pageBody');
 
+  const quickCards = [
+    { href:'article-edit.html', icon:'fa-plus',     cls:'si-red',   label:'New Article',  sub:'Write & publish',  perm:'articles' },
+    { href:'breaking.html',     icon:'fa-bolt',     cls:'si-amber', label:'Breaking News',sub:'Manage ticker',    perm:'breaking' },
+    { href:'epaper.html',       icon:'fa-file-pdf', cls:'si-blue',  label:'Upload E-Paper',sub:'Today\'s edition',perm:'epaper'   },
+  ].filter(c => hasPermission(c.perm));
+
   pb.innerHTML = `
-  <div class="quick-grid">
-    <a href="article-edit.html" class="quick-card"><div class="quick-icon si-red"><i class="fa-solid fa-plus"></i></div><div><div class="quick-label">New Article</div><div class="quick-sub">Write & publish</div></div></a>
-    <a href="breaking.html" class="quick-card"><div class="quick-icon si-amber"><i class="fa-solid fa-bolt"></i></div><div><div class="quick-label">Breaking News</div><div class="quick-sub">Manage ticker</div></div></a>
-    <a href="epaper.html" class="quick-card"><div class="quick-icon si-blue"><i class="fa-solid fa-file-pdf"></i></div><div><div class="quick-label">Upload E-Paper</div><div class="quick-sub">Today's edition</div></div></a>
-  </div>
+  ${quickCards.length ? `<div class="quick-grid" style="grid-template-columns:repeat(${quickCards.length},1fr)">
+    ${quickCards.map(c=>`<a href="${c.href}" class="quick-card"><div class="quick-icon ${c.cls}"><i class="fa-solid ${c.icon}"></i></div><div><div class="quick-label">${c.label}</div><div class="quick-sub">${c.sub}</div></div></a>`).join('')}
+  </div>` : ''}
 
   <div class="stat-grid" id="statGrid">
     ${[1,2,3,4].map(()=>`<div class="stat-card"><div class="stat-icon si-red"><i class="fa-solid fa-spinner fa-spin"></i></div><div><div class="stat-val">—</div><div class="stat-label">Loading…</div></div></div>`).join('')}

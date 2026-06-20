@@ -6,6 +6,21 @@ const getToken = () => localStorage.getItem('jn_admin_token') || '';
 const getUser  = () => { try { return JSON.parse(localStorage.getItem('jn_admin_user') || 'null'); } catch { return null; } };
 const getRole  = () => getUser()?.role || 'editor';
 
+function hasPermission(section) {
+  if (getRole() === 'super') return true;
+  const perms = getUser()?.permissions;
+  if (!perms) return false;
+  return !!perms[section];
+}
+
+function getAllowedCategories() {
+  if (getRole() === 'super') return null; // null = all categories
+  const perms = getUser()?.permissions;
+  if (!perms || !perms.articles) return []; // no article access at all
+  if (!perms.article_categories || !perms.article_categories.length) return null; // all categories
+  return perms.article_categories; // specific slugs
+}
+
 // Inject Noto Sans Devanagari font
 (function injectFonts() {
   const link = document.createElement('link');
@@ -33,7 +48,7 @@ async function syncUser() {
     const data = await apiFetch('/admin/me');
     if (data.success && data.data) {
       const u = data.data;
-      localStorage.setItem('jn_admin_user', JSON.stringify({ id: u.id, name: u.name, email: u.email, role: u.role }));
+      localStorage.setItem('jn_admin_user', JSON.stringify({ id: u.id, name: u.name, email: u.email, role: u.role, permissions: u.permissions ?? null }));
       const nameEl = document.getElementById('sbUserName');
       if (nameEl) nameEl.textContent = u.name;
     }
@@ -108,14 +123,18 @@ function injectSidebar(activePage) {
   const roleLabel = role === 'super' ? 'Super Admin' : 'Editor';
 
   const allNav = [
-    { href: 'dashboard.html',     icon: 'fa-gauge-high',   label: 'Dashboard'    },
-    { href: 'articles.html',      icon: 'fa-newspaper',    label: 'Articles'     },
-    { href: 'breaking.html',      icon: 'fa-bolt',         label: 'Breaking News'},
-    { href: 'epaper.html',        icon: 'fa-file-pdf',     label: 'E-Paper'      },
-    { href: 'users.html',         icon: 'fa-users',        label: 'Users',         superOnly: true },
-    { href: 'settings.html',      icon: 'fa-gear',         label: 'Settings',      superOnly: true },
+    { href: 'dashboard.html', icon: 'fa-gauge-high', label: 'Dashboard'                        },
+    { href: 'articles.html',  icon: 'fa-newspaper',  label: 'Articles',     perm: 'articles'   },
+    { href: 'breaking.html',  icon: 'fa-bolt',       label: 'Breaking News',perm: 'breaking'   },
+    { href: 'epaper.html',    icon: 'fa-file-pdf',   label: 'E-Paper',      perm: 'epaper'     },
+    { href: 'users.html',     icon: 'fa-users',      label: 'Users',        superOnly: true    },
+    { href: 'settings.html',  icon: 'fa-gear',       label: 'Settings',     superOnly: true    },
   ];
-  const nav = allNav.filter(n => !n.superOnly || role === 'super');
+  const nav = allNav.filter(n => {
+    if (n.superOnly) return role === 'super';
+    if (n.perm) return hasPermission(n.perm);
+    return true;
+  });
 
   const html = `
   <style>
@@ -239,7 +258,7 @@ function injectSidebar(activePage) {
       <div class="top-right">
         <span class="top-date" id="topDate"></span>
         <span class="top-badge"><i class="fa-solid fa-circle" style="font-size:.45rem;margin-right:4px;color:var(--red);"></i> LIVE</span>
-        <a href="article-edit.html" class="btn btn-red btn-sm"><i class="fa-solid fa-plus"></i> New Article</a>
+        ${hasPermission('articles') ? '<a href="article-edit.html" class="btn btn-red btn-sm"><i class="fa-solid fa-plus"></i> New Article</a>' : ''}
       </div>
     </div>
     <div class="page-body" id="pageBody">`;

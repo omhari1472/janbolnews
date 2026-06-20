@@ -26,15 +26,15 @@
 /* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{display:flex}
-.modal{background:#fff;border-radius:14px;width:100%;max-width:500px;box-shadow:0 24px 80px rgba(0,0,0,.25);overflow:hidden;animation:modalIn .2s ease}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:500px;max-height:calc(100vh - 40px);display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.25);overflow:hidden;animation:modalIn .2s ease}
 @keyframes modalIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
-.modal-head{padding:18px 22px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;background:#fafafa}
+.modal-head{padding:18px 22px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;background:#fafafa;flex-shrink:0}
 .modal-head h3{font-weight:800;font-size:.92rem;color:#1a1a1a;display:flex;align-items:center;gap:8px}
 .modal-head h3 i{color:#C41E3A}
 .modal-close{width:30px;height:30px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#999;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:.15s}
 .modal-close:hover{background:#f0f0f0;color:#333}
-.modal-body{padding:22px}
-.modal-foot{padding:14px 22px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:10px;background:#fafafa}
+.modal-body{padding:22px;overflow-y:auto;flex:1}
+.modal-foot{padding:14px 22px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:10px;background:#fafafa;flex-shrink:0}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .form-group{margin-bottom:14px}
 .form-group label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#555;margin-bottom:5px}
@@ -42,6 +42,18 @@
 .form-group input:focus,.form-group select:focus{border-color:#C41E3A;box-shadow:0 0 0 3px rgba(196,30,58,.07)}
 .form-group .hint{font-size:.72rem;color:#aaa;margin-top:4px}
 .form-err{background:#fef2f2;color:#dc2626;padding:10px 14px;border-radius:7px;font-size:.82rem;margin-bottom:14px;display:none;border-left:3px solid #dc2626}
+.perm-section{border-top:1px solid #f0f0f0;margin:4px -22px 0;padding:16px 22px 0}
+.perm-head{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#555;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.perm-row{margin-bottom:9px}
+.perm-toggle{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:.85rem;color:#333;user-select:none}
+.perm-toggle input[type=checkbox]{display:none}
+.perm-check{width:18px;height:18px;border-radius:4px;border:1.5px solid #d0d0d0;background:#fff;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s}
+.perm-toggle input:checked + .perm-check{background:#C41E3A;border-color:#C41E3A}
+.perm-toggle input:checked + .perm-check::after{content:'✓';font-size:.7rem;color:#fff;font-weight:800}
+.cat-section{margin:8px 0 10px 27px;display:none}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px}
+.cat-label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.8rem;color:#555}
+.cat-label input[type=checkbox]{accent-color:#C41E3A;width:13px;height:13px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -53,6 +65,54 @@ injectSidebar('users.html');
 document.getElementById('pageTitle').textContent = 'User Management';
 
 let editingId = null;
+
+function buildCatCheckboxes() {
+  document.getElementById('catCheckboxes').innerHTML = JN_CATEGORIES.map(c =>
+    `<label class="cat-label"><input type="checkbox" value="${c.value}"> ${c.labelHi} / ${c.label}</label>`
+  ).join('');
+}
+
+function toggleRolePermSection() {
+  const role = document.getElementById('fRole').value;
+  document.getElementById('permSection').style.display = role === 'editor' ? 'block' : 'none';
+}
+
+function toggleCatSection() {
+  document.getElementById('catSection').style.display =
+    document.getElementById('permArticles').checked ? 'block' : 'none';
+}
+
+function resetPermissions() {
+  document.getElementById('permArticles').checked = false;
+  document.getElementById('permBreaking').checked = false;
+  document.getElementById('permEpaper').checked = false;
+  toggleCatSection();
+  document.querySelectorAll('#catCheckboxes input').forEach(cb => cb.checked = false);
+}
+
+function restorePermissions(perms) {
+  if (!perms) { resetPermissions(); return; }
+  document.getElementById('permArticles').checked = !!perms.articles;
+  document.getElementById('permBreaking').checked = !!perms.breaking;
+  document.getElementById('permEpaper').checked   = !!perms.epaper;
+  toggleCatSection();
+  const allowed = perms.article_categories || [];
+  document.querySelectorAll('#catCheckboxes input').forEach(cb => {
+    cb.checked = allowed.length === 0 ? false : allowed.includes(cb.value);
+  });
+}
+
+function collectPermissions() {
+  const role = document.getElementById('fRole').value;
+  if (role !== 'editor') return null;
+  const selectedCats = [...document.querySelectorAll('#catCheckboxes input:checked')].map(cb => cb.value);
+  return {
+    articles:           document.getElementById('permArticles').checked,
+    article_categories: selectedCats,
+    breaking:           document.getElementById('permBreaking').checked,
+    epaper:             document.getElementById('permEpaper').checked,
+  };
+}
 
 function render() {
   document.getElementById('pageBody').innerHTML = `
@@ -124,6 +184,39 @@ function render() {
           </div>
           <div class="hint" id="pwdHint" style="font-size:.72rem;color:#aaa;margin-top:-8px;margin-bottom:14px;"></div>
         </div>
+
+        <!-- Permissions section — only visible for editor role -->
+        <div class="perm-section" id="permSection" style="display:none">
+          <div class="perm-head"><i class="fa-solid fa-shield-halved" style="color:#C41E3A;"></i> Access Permissions</div>
+
+          <div class="perm-row">
+            <label class="perm-toggle">
+              <input type="checkbox" id="permArticles" onchange="toggleCatSection()">
+              <span class="perm-check"></span>
+              <span><i class="fa-solid fa-newspaper" style="color:#888;margin-right:5px;width:14px;text-align:center;font-size:.8rem;"></i> Articles</span>
+            </label>
+            <div class="cat-section" id="catSection">
+              <div style="font-size:.72rem;color:#aaa;margin-bottom:7px;">Category access — leave all unchecked to allow <strong>all categories</strong></div>
+              <div class="cat-grid" id="catCheckboxes"></div>
+            </div>
+          </div>
+
+          <div class="perm-row">
+            <label class="perm-toggle">
+              <input type="checkbox" id="permBreaking">
+              <span class="perm-check"></span>
+              <span><i class="fa-solid fa-bolt" style="color:#888;margin-right:5px;width:14px;text-align:center;font-size:.8rem;"></i> Breaking News</span>
+            </label>
+          </div>
+
+          <div class="perm-row" style="margin-bottom:0">
+            <label class="perm-toggle">
+              <input type="checkbox" id="permEpaper">
+              <span class="perm-check"></span>
+              <span><i class="fa-solid fa-file-pdf" style="color:#888;margin-right:5px;width:14px;text-align:center;font-size:.8rem;"></i> E-Paper</span>
+            </label>
+          </div>
+        </div>
       </div>
       <div class="modal-foot">
         <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
@@ -132,6 +225,8 @@ function render() {
     </div>
   </div>`;
 
+  buildCatCheckboxes();
+  document.getElementById('fRole').addEventListener('change', toggleRolePermSection);
   loadUsers();
 }
 
@@ -200,6 +295,8 @@ function openCreate() {
   document.getElementById('pwdLabel').textContent = 'Password *';
   document.getElementById('pwdHint').textContent = '';
   document.getElementById('formErr').style.display = 'none';
+  resetPermissions();
+  toggleRolePermSection();
   document.getElementById('userModal').classList.add('open');
   document.getElementById('fName').focus();
 }
@@ -216,6 +313,8 @@ function openEdit(u) {
   document.getElementById('pwdLabel').textContent = 'New Password';
   document.getElementById('pwdHint').textContent = 'Leave blank to keep current password';
   document.getElementById('formErr').style.display = 'none';
+  restorePermissions(u.permissions);
+  toggleRolePermSection();
   document.getElementById('userModal').classList.add('open');
   document.getElementById('fName').focus();
 }
@@ -248,9 +347,9 @@ async function saveUser() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
 
-  const body = { name, email, role, status };
+  const body = { name, email, role, status, permissions: collectPermissions() };
   if (password) { body.password = password; body.password_confirmation = passwordConfirm; }
-  if (!editingId) { body.password_confirmation = passwordConfirm; }
+  else if (!editingId) { body.password_confirmation = passwordConfirm; }
 
   try {
     const url = editingId ? `/admin/users/${editingId}` : '/admin/users';

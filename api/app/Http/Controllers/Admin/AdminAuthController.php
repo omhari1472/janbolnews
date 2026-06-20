@@ -16,7 +16,7 @@ class AdminAuthController extends Controller {
             return $this->errorResponse('Account disabled.',403);
         $user->tokens()->delete();
         $token = $user->createToken('admin-token',['admin'])->plainTextToken;
-        return $this->successResponse(['access_token'=>$token,'token_type'=>'Bearer','user'=>['id'=>$user->id,'name'=>$user->name,'email'=>$user->email,'role'=>$user->role]],'Login successful');
+        return $this->successResponse(['access_token'=>$token,'token_type'=>'Bearer','user'=>['id'=>$user->id,'name'=>$user->name,'email'=>$user->email,'role'=>$user->role,'permissions'=>$user->permissions]],'Login successful');
     }
     public function me(Request $request) { return $this->successResponse($request->user()); }
     public function logout(Request $request) { $request->user()->currentAccessToken()->delete(); return $this->successResponse([],'Logged out'); }
