@@ -39,7 +39,12 @@ function checkAuth() {
 }
 
 function checkSuperAdmin() {
-  if (getRole() !== 'super') { window.location.href = 'dashboard.html'; return false; }
+  if (getRole() !== 'super') {
+    const perms = getUser()?.permissions || {};
+    const fallback = perms.articles ? 'articles.html' : perms.breaking ? 'breaking.html' : perms.epaper ? 'epaper.html' : 'settings.html';
+    window.location.href = fallback;
+    return false;
+  }
   return true;
 }
 
@@ -123,12 +128,12 @@ function injectSidebar(activePage) {
   const roleLabel = role === 'super' ? 'Super Admin' : 'Editor';
 
   const allNav = [
-    { href: 'dashboard.html', icon: 'fa-gauge-high', label: 'Dashboard'                        },
+    { href: 'dashboard.html', icon: 'fa-gauge-high', label: 'Dashboard', superOnly: true       },
     { href: 'articles.html',  icon: 'fa-newspaper',  label: 'Articles',     perm: 'articles'   },
     { href: 'breaking.html',  icon: 'fa-bolt',       label: 'Breaking News',perm: 'breaking'   },
     { href: 'epaper.html',    icon: 'fa-file-pdf',   label: 'E-Paper',      perm: 'epaper'     },
     { href: 'users.html',     icon: 'fa-users',      label: 'Users',        superOnly: true    },
-    { href: 'settings.html',  icon: 'fa-gear',       label: 'Settings',     superOnly: true    },
+    { href: 'settings.html',  icon: 'fa-gear',       label: 'Settings'                         },
   ];
   const nav = allNav.filter(n => {
     if (n.superOnly) return role === 'super';

@@ -58,7 +58,8 @@ injectSidebar('settings.html');
 document.getElementById('pageTitle').textContent = 'Settings';
 
 const SECTIONS = ['general','social','analytics','adsense','contact','admin'];
-let currentSection = 'general';
+const isEditorRole = getRole() !== 'super';
+let currentSection = isEditorRole ? 'admin' : 'general';
 let settingsData = {};
 
 function render() {
@@ -66,19 +67,21 @@ function render() {
   <div class="settings-layout">
     <!-- Left nav -->
     <nav class="settings-nav" id="settingsNav">
-      <a data-sec="general" onclick="switchSection('general')" class="active"><i class="fa-solid fa-gear"></i> General</a>
+      ${!isEditorRole ? `
+      <a data-sec="general" onclick="switchSection('general')" class="${currentSection==='general'?'active':''}"><i class="fa-solid fa-gear"></i> General</a>
       <a data-sec="social" onclick="switchSection('social')"><i class="fa-solid fa-share-nodes"></i> Social Links</a>
       <a data-sec="analytics" onclick="switchSection('analytics')"><i class="fa-solid fa-chart-line"></i> Analytics</a>
       <a data-sec="adsense" onclick="switchSection('adsense')"><i class="fa-solid fa-rectangle-ad"></i> AdSense</a>
       <a data-sec="contact" onclick="switchSection('contact')"><i class="fa-solid fa-address-card"></i> Contact</a>
-      <a data-sec="admin" onclick="switchSection('admin')"><i class="fa-solid fa-lock"></i> Admin Access</a>
+      ` : ''}
+      <a data-sec="admin" onclick="switchSection('admin')" class="${currentSection==='admin'?'active':''}"><i class="fa-solid fa-lock"></i> Admin Access</a>
     </nav>
 
     <!-- Settings panels -->
     <div id="settingsContent">
 
-      <!-- General -->
-      <div class="section-group active" data-section="general" id="sec-general">
+      <!-- General (superadmin only) -->
+      <div class="section-group ${!isEditorRole ? 'active' : ''}" data-section="general" id="sec-general" ${isEditorRole ? 'style="display:none!important"' : ''}>
         <div class="section-card">
           <div class="section-head"><i class="fa-solid fa-newspaper"></i><h3>Site Identity</h3></div>
           <div class="section-body">
@@ -252,7 +255,7 @@ function render() {
       </div>
 
       <!-- Admin Access -->
-      <div class="section-group" data-section="admin" id="sec-admin">
+      <div class="section-group ${isEditorRole ? 'active' : ''}" data-section="admin" id="sec-admin">
         <div class="section-card danger-zone">
           <div class="section-head danger-head"><i class="fa-solid fa-shield-halved"></i><h3>Admin Access</h3></div>
           <div class="section-body">

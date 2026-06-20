@@ -48,6 +48,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" defer></script>
 <script>
 checkAuth();
+if (getRole() !== 'super') {
+  const p = getUser()?.permissions || {};
+  window.location.href = p.articles ? 'articles.html' : p.breaking ? 'breaking.html' : p.epaper ? 'epaper.html' : 'settings.html';
+}
 injectSidebar('dashboard.html');
 document.getElementById('pageTitle').textContent = 'Dashboard';
 
