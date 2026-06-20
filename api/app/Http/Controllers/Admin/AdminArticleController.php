@@ -113,7 +113,9 @@ class AdminArticleController extends Controller {
         return $this->successResponse($this->format($article->fresh()->load('category')), 'Article updated');
     }
 
-    public function destroy(Article $article) {
+    public function destroy(Request $request, Article $article) {
+        if ($request->user()->role !== 'super')
+            return $this->errorResponse('Only superadmin can delete articles.', 403);
         $this->uploader->delete($article->featured_image);
         $article->delete();
         return $this->successResponse([], 'Article deleted');

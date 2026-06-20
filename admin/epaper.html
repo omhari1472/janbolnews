@@ -195,7 +195,7 @@ function renderGrid(papers) {
         <div class="overlay">
           ${p.pdf_url ? `<a href="${p.pdf_url}" target="_blank" title="View PDF"><button class="overlay-btn"><i class="fa-solid fa-eye"></i></button></a>` : ''}
           ${p.pdf_url ? `<a href="${p.pdf_url}" download title="Download PDF"><button class="overlay-btn"><i class="fa-solid fa-download"></i></button></a>` : ''}
-          <button class="overlay-btn" title="Delete" onclick="deleteEpaper(${p.id})" style="background:#C41E3A;color:#fff;"><i class="fa-solid fa-trash"></i></button>
+          ${getRole() === 'super' ? `<button class="overlay-btn" title="Delete" onclick="deleteEpaper(${p.id})" style="background:#C41E3A;color:#fff;"><i class="fa-solid fa-trash"></i></button>` : ''}
         </div>
       </div>
       <div class="epaper-info">
@@ -207,7 +207,7 @@ function renderGrid(papers) {
         </div>
         <div class="epaper-actions">
           ${p.pdf_url ? `<a href="${p.pdf_url}" target="_blank" class="btn btn-outline btn-sm" style="flex:1;justify-content:center;"><i class="fa-solid fa-file-pdf" style="color:#C41E3A;"></i> View PDF</a>` : ''}
-          <button class="btn btn-outline btn-sm del" onclick="deleteEpaper(${p.id})" style="color:#C41E3A;border-color:#C41E3A;"><i class="fa-solid fa-trash"></i></button>
+          ${getRole() === 'super' ? `<button class="btn btn-outline btn-sm del" onclick="deleteEpaper(${p.id})" style="color:#C41E3A;border-color:#C41E3A;"><i class="fa-solid fa-trash"></i></button>` : ''}
         </div>
       </div>
     </div>`).join('')}</div>`;

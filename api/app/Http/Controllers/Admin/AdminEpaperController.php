@@ -41,7 +41,9 @@ class AdminEpaperController extends Controller {
         return $this->successResponse($this->fmt($epaper->fresh()), 'Updated');
     }
 
-    public function destroy(Epaper $epaper) {
+    public function destroy(Request $request, Epaper $epaper) {
+        if ($request->user()->role !== 'super')
+            return $this->errorResponse('Only superadmin can delete e-papers.', 403);
         $this->uploader->delete($epaper->pdf_path);
         $this->uploader->delete($epaper->thumbnail_path);
         $epaper->delete();

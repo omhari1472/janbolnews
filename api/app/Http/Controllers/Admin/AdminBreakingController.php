@@ -23,7 +23,9 @@ class AdminBreakingController extends Controller {
         return $this->successResponse($breaking, 'Updated');
     }
 
-    public function destroy(BreakingNews $breaking) {
+    public function destroy(Request $request, BreakingNews $breaking) {
+        if ($request->user()->role !== 'super')
+            return $this->errorResponse('Only superadmin can delete breaking news.', 403);
         $breaking->delete();
         return $this->successResponse([], 'Deleted');
     }
