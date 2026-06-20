@@ -26,23 +26,6 @@
     }).join('');
 
     return `
-    <!-- Mobile Date Bar (shown only on mobile) -->
-    <div class="mobile-datebar" id="mobile-datebar"></div>
-
-    <!-- Breaking News Ticker -->
-    <div class="breaking-ticker" id="breaking-ticker">
-      <div class="ticker-label">
-        <span class="dot"></span>
-        <span class="ticker-label-hi hi-text">ब्रेकिंग</span>
-        <span>NEWS</span>
-      </div>
-      <div class="ticker-scroll-wrap">
-        <div class="ticker-track" id="ticker-track">
-          <span class="ticker-item hi-text">समाचार लोड हो रहे हैं…</span>
-        </div>
-      </div>
-    </div>
-
     <!-- Top Bar -->
     <div class="topbar">
       <div class="container">
@@ -61,6 +44,23 @@
           <a href="/epaper.html" class="epaper-link">
             📰 ई-पेपर
           </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Date Bar (shown only on mobile) -->
+    <div class="mobile-datebar" id="mobile-datebar"></div>
+
+    <!-- Breaking News Ticker -->
+    <div class="breaking-ticker" id="breaking-ticker">
+      <div class="ticker-label">
+        <span class="dot"></span>
+        <span class="ticker-label-hi hi-text">ब्रेकिंग</span>
+        <span>NEWS</span>
+      </div>
+      <div class="ticker-scroll-wrap">
+        <div class="ticker-track" id="ticker-track">
+          <span class="ticker-item hi-text">समाचार लोड हो रहे हैं…</span>
         </div>
       </div>
     </div>

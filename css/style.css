@@ -316,11 +316,12 @@ input, select, textarea {
    TOP BAR (Date, Editions)
    ============================================================ */
 .topbar {
-  background: var(--dark);
+  background: #fff;
   height: var(--topbar-height);
   display: flex;
   align-items: center;
-  border-bottom: 2px solid var(--red-primary);
+  border-top: 3px solid var(--red-primary);
+  border-bottom: 1px solid var(--gray-100);
 }
 
 .topbar .container {
@@ -336,7 +337,7 @@ input, select, textarea {
 }
 
 .topbar-date {
-  color: var(--gray-300);
+  color: var(--gray-600);
   font-size: 11px;
   font-family: var(--font-ui);
   letter-spacing: 0.03em;
@@ -348,7 +349,7 @@ input, select, textarea {
 }
 
 .topbar-edition a {
-  color: var(--gray-400);
+  color: var(--gray-500);
   font-size: 11px;
   font-family: var(--font-hindi);
   padding: 2px 8px;
@@ -386,14 +387,14 @@ input, select, textarea {
 }
 
 .topbar-social a:hover {
-  color: #fff;
-  background: var(--red-primary);
+  color: var(--red-primary);
+  background: var(--red-pale);
 }
 
 .epaper-link {
-  color: var(--red-light) !important;
+  color: var(--red-primary) !important;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: var(--font-ui);
   letter-spacing: 0.05em;
   display: flex;
@@ -403,7 +404,7 @@ input, select, textarea {
   transition: opacity var(--transition-fast);
 }
 
-.epaper-link:hover { opacity: 0.8; }
+.epaper-link:hover { opacity: 0.75; }
 
 /* ============================================================
    NAVBAR
@@ -747,7 +748,7 @@ input, select, textarea {
 
 .section-title {
   font-family: var(--font-hindi);
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 800;
   color: var(--dark);
   display: flex;
@@ -870,7 +871,7 @@ input, select, textarea {
 }
 
 .article-card-body {
-  padding: 12px;
+  padding: 13px 14px;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -882,7 +883,7 @@ input, select, textarea {
   font-size: 15px;
   font-weight: 700;
   color: var(--dark);
-  line-height: 1.4;
+  line-height: 1.45;
   transition: color var(--transition-fast);
 }
 
@@ -931,9 +932,9 @@ input, select, textarea {
 .card-xl .article-card-img { max-height: 360px; }
 
 .card-sm .article-card-headline { font-size: 14px; }
-.card-md .article-card-headline { font-size: 15px; }
-.card-lg .article-card-headline { font-size: 17px; }
-.card-xl .article-card-headline { font-size: 20px; }
+.card-md .article-card-headline { font-size: 16px; }
+.card-lg .article-card-headline { font-size: 18px; }
+.card-xl .article-card-headline { font-size: 21px; }
 
 /* Horizontal card variant */
 .article-card.card-horizontal {
@@ -1063,7 +1064,7 @@ input, select, textarea {
    ============================================================ */
 .hero-section {
   background: var(--card-bg);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-lg);
   border-bottom: 1px solid var(--gray-200);
 }
 
@@ -1102,7 +1103,7 @@ input, select, textarea {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(transparent 0%, rgba(0,0,0,0.55) 40%, rgba(0,0,0,0.88) 100%);
+  background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.82) 100%);
   padding: var(--space-xl) var(--space-lg) var(--space-lg);
 }
 
@@ -1120,12 +1121,12 @@ input, select, textarea {
 
 .hero-main-title {
   font-family: var(--font-hindi);
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 800;
   color: #fff;
   line-height: 1.35;
   margin-bottom: 8px;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.4);
 }
 
 .hero-main-meta {
@@ -1226,7 +1227,7 @@ input, select, textarea {
    SECTION BLOCKS
    ============================================================ */
 .news-section {
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
 }
 
 .top-stories-grid {
@@ -1314,33 +1315,14 @@ input, select, textarea {
    AD SLOTS
    ============================================================ */
 .ad-slot {
-  background: var(--accent-bg);
-  border: 1px dashed var(--gray-300);
-  border-radius: var(--radius-sm);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--gray-400);
-  font-size: 11px;
-  font-family: var(--font-ui);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  gap: 4px;
+  display: none;
   overflow: hidden;
 }
 
-.ad-slot::before {
-  content: 'AD';
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-}
-
-.ad-slot-banner { height: 90px; margin: var(--space-md) 0; }
-.ad-slot-square { height: 250px; }
-.ad-slot-leaderboard { height: 90px; width: 100%; }
-.ad-slot-rect { height: 300px; }
+.ad-slot-banner { margin: var(--space-md) 0; }
+.ad-slot-leaderboard { width: 100%; margin: var(--space-sm) 0; }
+.ad-slot-square { }
+.ad-slot-rect { }
 
 /* ============================================================
    E-PAPER SECTION
@@ -2514,7 +2496,7 @@ input, select, textarea {
 
   .hero-main-img { height: 240px; }
 
-  .hero-main-title { font-size: 18px; }
+  .hero-main-title { font-size: 19px; }
 
   .hero-side {
     flex-direction: row;

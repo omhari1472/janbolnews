@@ -20,6 +20,7 @@
       }
 
       if (code) {
+        slot.style.display = 'block';
         slot.style.background = 'transparent';
         slot.style.border = 'none';
         slot.innerHTML = code;
