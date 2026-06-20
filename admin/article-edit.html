@@ -106,16 +106,9 @@ async function loadCategoryOptions() {
       cats.filter(c => allowedCats === null || allowedCats.includes(c.slug))
           .forEach(c => sel.appendChild(Object.assign(document.createElement('option'), { value: c.id, textContent: `${c.name_hi} / ${c.name_en}` })));
     }
-    const aSel = document.getElementById('author');
-    if (aSel) {
-      const aData = await fetch(`${base}/admin/authors`, {
-        headers: { 'Authorization': `Bearer ${getToken()}`, 'Accept': 'application/json' }
-      }).then(r => r.json());
-      const authors = aData.data || [];
-      const firstOpt = aSel.options[0];
-      aSel.innerHTML = '';
-      aSel.appendChild(firstOpt || Object.assign(document.createElement('option'), { value: '', textContent: '— Select Author —' }));
-      authors.forEach(a => aSel.appendChild(Object.assign(document.createElement('option'), { value: a.id, textContent: a.name })));
+    const authorInput = document.getElementById('authorName');
+    if (authorInput && !authorInput.value) {
+      authorInput.value = getUser()?.name || '';
     }
   } catch (e) { /* keep hardcoded fallback */ }
 }
@@ -168,12 +161,7 @@ function render() {
             </div>
             <div class="field">
               <label>Author</label>
-              <select id="author" id="authorSel">
-                <option value="editor">Editor</option>
-                <option value="reporter">Reporter</option>
-                <option value="agency">Agency / PTI</option>
-                <option value="admin">Admin</option>
-              </select>
+              <input type="text" id="authorName" placeholder="लेखक का नाम लिखें…">
             </div>
           </div>
           <div class="field">
@@ -566,7 +554,7 @@ async function loadArticle() {
     document.getElementById('slug').value = a.slug || '';
     document.getElementById('slug').dataset.manual = '1';
     document.getElementById('category').value = a.category_id || '';
-    document.getElementById('author').value = a.author || 'editor';
+    document.getElementById('authorName').value = a.author_name || getUser()?.name || '';
     document.getElementById('contentHi').value = a.content_hi || '';
     document.getElementById('contentEn').value = a.content_en || '';
     document.getElementById('excerptHi').value = a.excerpt_hi || '';
@@ -639,7 +627,7 @@ async function saveArticle(forceStatus) {
       title_en:    titleEn,
       slug:        document.getElementById('slug').value.trim() || generateSlug(titleEn || titleHi),
       category_id: document.getElementById('category').value,
-      author_id:   document.getElementById('author').value || null,
+      author_name: document.getElementById('authorName').value.trim() || null,
       content_hi:  document.getElementById('contentHi').value,
       content_en:  document.getElementById('contentEn').value,
       excerpt_hi:  document.getElementById('excerptHi').value,

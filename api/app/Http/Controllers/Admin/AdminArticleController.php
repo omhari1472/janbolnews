@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
 use App\Models\Article;
+use App\Models\Author;
 use App\Models\Category;
 use App\Services\FileUploadService;
 use Illuminate\Http\Request;
@@ -61,7 +62,10 @@ class AdminArticleController extends Controller {
         ]);
 
         $slug = $this->uniqueSlug($request->title_hi);
-        $data = $request->except(['featured_image']) + ['slug' => $slug];
+        $data = $request->except(['featured_image','author_name']) + ['slug' => $slug];
+        if ($request->filled('author_name')) {
+            $data['author_id'] = Author::firstOrCreate(['name' => trim($request->author_name)])->id;
+        }
 
         if ($request->hasFile('featured_image')) {
             $data['featured_image'] = $this->uploader->upload($request->file('featured_image'), 'articles');
@@ -88,7 +92,10 @@ class AdminArticleController extends Controller {
             'featured_image' => 'nullable|image|max:5120',
         ]);
 
-        $data = $request->except(['featured_image','_method']);
+        $data = $request->except(['featured_image','_method','author_name']);
+        if ($request->filled('author_name')) {
+            $data['author_id'] = Author::firstOrCreate(['name' => trim($request->author_name)])->id;
+        }
         if ($request->hasFile('featured_image')) {
             $this->uploader->delete($article->featured_image);
             $data['featured_image'] = $this->uploader->upload($request->file('featured_image'), 'articles');
