@@ -770,10 +770,10 @@ input, select, textarea {
 
 .section-title .en-sub {
   font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--gray-400);
-  letter-spacing: 0.08em;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gray-500);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   display: block;
 }
@@ -2811,4 +2811,142 @@ button:focus-visible,
   }
 
   .ticker-track { animation: none; }
+  .article-card:hover { transform: none; }
+  .article-card:hover .article-card-img img { transform: none; }
+  .fade-in-up { animation: none; opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   PRO-MAX: CATEGORY COLOR SYSTEM
+   Dainik Jagran / Amar Ujala pattern — each category has its
+   own color identity for instant scannability.
+   ============================================================ */
+:root {
+  --cat-politics:      #1D4ED8;
+  --cat-sports:        #15803D;
+  --cat-entertainment: #7C3AED;
+  --cat-technology:    #0E7490;
+  --cat-business:      #B45309;
+  --cat-national:      #C41E3A;
+  --cat-world:         #475569;
+  --cat-religion:      #92400E;
+}
+
+/* Category-colored top stripe on cards */
+.article-card[data-cat="politics"]      { border-top: 3px solid var(--cat-politics); }
+.article-card[data-cat="sports"]        { border-top: 3px solid var(--cat-sports); }
+.article-card[data-cat="entertainment"] { border-top: 3px solid var(--cat-entertainment); }
+.article-card[data-cat="technology"]    { border-top: 3px solid var(--cat-technology); }
+.article-card[data-cat="business"]      { border-top: 3px solid var(--cat-business); }
+.article-card[data-cat="rashtriya"],
+.article-card[data-cat="national"]      { border-top: 3px solid var(--cat-national); }
+.article-card[data-cat="world"],
+.article-card[data-cat="duniya"]        { border-top: 3px solid var(--cat-world); }
+.article-card[data-cat="religion"],
+.article-card[data-cat="dharm"]         { border-top: 3px solid var(--cat-religion); }
+
+/* Matching badge color on the card's category badge */
+.article-card[data-cat="politics"]      .card-category-badge { background: var(--cat-politics); }
+.article-card[data-cat="sports"]        .card-category-badge { background: var(--cat-sports); }
+.article-card[data-cat="entertainment"] .card-category-badge { background: var(--cat-entertainment); }
+.article-card[data-cat="technology"]    .card-category-badge { background: var(--cat-technology); }
+.article-card[data-cat="business"]      .card-category-badge { background: var(--cat-business); }
+.article-card[data-cat="rashtriya"]     .card-category-badge,
+.article-card[data-cat="national"]      .card-category-badge { background: var(--cat-national); }
+.article-card[data-cat="world"]         .card-category-badge,
+.article-card[data-cat="duniya"]        .card-category-badge { background: var(--cat-world); }
+.article-card[data-cat="religion"]      .card-category-badge,
+.article-card[data-cat="dharm"]         .card-category-badge { background: var(--cat-religion); }
+
+/* Category section heading accent — colored bar matches category color */
+.news-section[data-cat="politics"]      .section-title::before { background: var(--cat-politics); }
+.news-section[data-cat="sports"]        .section-title::before { background: var(--cat-sports); }
+.news-section[data-cat="entertainment"] .section-title::before { background: var(--cat-entertainment); }
+.news-section[data-cat="technology"]    .section-title::before { background: var(--cat-technology); }
+.news-section[data-cat="business"]      .section-title::before { background: var(--cat-business); }
+
+/* ============================================================
+   PRO-MAX: CARD HOVER REFINEMENT
+   Lift + shadow, smooth 150ms ease-out (MD spec).
+   ============================================================ */
+.article-card {
+  transition: box-shadow 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.article-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.11);
+}
+
+/* ============================================================
+   PRO-MAX: TOP STORIES SECTION — MASTHEAD TREATMENT
+   First news section after hero gets a "front page" identity.
+   ============================================================ */
+.top-stories-section .section-heading {
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--gray-200);
+  margin-bottom: var(--space-md);
+}
+
+.top-stories-section .section-title {
+  font-size: 22px;
+}
+
+/* ============================================================
+   PRO-MAX: ARTICLE META — IMPROVED CONTRAST
+   gray-400 (#9a9a9a) on white fails 4.5:1 AA.
+   Bumped to gray-600 (#5a5a5a) = ~5.7:1.
+   ============================================================ */
+.article-card-meta {
+  color: var(--gray-600);
+}
+
+.article-card-meta .meta-date,
+.article-card-meta .meta-author {
+  color: var(--gray-500);
+}
+
+/* ============================================================
+   PRO-MAX: SECTION MORE LINK — BETTER AFFORDANCE
+   ============================================================ */
+.section-more {
+  background: var(--red-pale);
+  padding: 5px 12px;
+  border-radius: 3px;
+  font-size: 12px;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.section-more:hover {
+  background: var(--red-primary);
+  color: #fff;
+  opacity: 1;
+}
+
+/* ============================================================
+   PRO-MAX: HERO SECTION — MASTHEAD LABEL
+   ============================================================ */
+.hero-section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: var(--space-sm) 0 var(--space-sm);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.hero-section-label-text {
+  font-family: var(--font-hindi);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--gray-600);
+  letter-spacing: 0.02em;
+}
+
+.hero-section-label-en {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--gray-400);
+  text-transform: uppercase;
 }

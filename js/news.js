@@ -214,6 +214,7 @@
     card.href  = href;
     card.className = 'article-card card-' + size + (horizontal ? ' card-horizontal' : '');
     card.setAttribute('aria-label', title);
+    if (article.category_slug) card.dataset.cat = article.category_slug;
 
     // Image
     const imgWrap = document.createElement('div');
